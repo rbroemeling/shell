@@ -44,8 +44,12 @@
 ; Disable the welcome message.
 (setq inhibit-startup-message t)
 
-; Set the directory that emacs will put all of it's save (*~) files in.
-(setq backup-directory-alist `(("." . "~/.emacs.d/backups")))
+; Disable auto-saving of files.
+(setq auto-save-default nil)
+
+; Set the directory that emacs will put all of it's backup (*~) files in.
+(if (not (file-exists-p "~/.emacs.d/backups")) (make-directory "~/.emacs.d/backups" t))
+(setq backup-directory-alist '(("." . "~/.emacs.d/backups")))
 
 ; Configure emacs backups to keep a number of past revisions in case they are
 ; ever needed, but to delete backups past the threshold without prompting.
