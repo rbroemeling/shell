@@ -24,7 +24,7 @@ if [ -n "${HOST}" ]; then
 		rm -rv '${LOCATION}/.environment-install'
 	" | ssh "${HOST}" bash
 else
-	for F in .bash_logout .bashrc .emacs .profile .vimrc; do
-		install --backup --mode=0644 --preserve-timestamps --verbose "${F}" "${LOCATION}/"
+	for F in .bash_logout .bashrc .emacs .subversion/config .profile .vimrc; do
+		install --backup --mode=0644 --preserve-timestamps --verbose "${F}" "${LOCATION}/${F}"
 	done
 fi
