@@ -1,0 +1,6 @@
+[core]
+	editor = emacs
+
+[user]
+	name = Remi Broemeling
+	email = remi@broemeling.org
