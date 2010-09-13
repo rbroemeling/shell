@@ -65,6 +65,32 @@ alias la='ls -A'
 alias ll='ls -l'
 alias lla='ls -la'
 
+# convenience function to compare a local file/directory (lhs) with a
+# remote file/directory (rhs)
+function remotediff()
+{
+	LOCAL_FILE="${1}"
+	shift
+	REMOTE_HOST="$(echo "${1}" | awk -F: '{print $1}')"
+	REMOTE_FILE="$(echo "${1}" | awk -F: '{print $2}')"
+	shift
+
+	if [ -z "${LOCAL_FILE}" -o -z "${REMOTE_HOST}" -o -z "${REMOTE_FILE}" ]; then
+		echo "usage: remotediff LOCALPATH REMOTEPATH [... other args are passed to comparison call]"
+		return -1
+	fi
+	if [ -d "${LOCAL_FILE}" ]; then
+		# assume that we are dealing with a recursive diff of a directory
+		rsync -rlptvzn --exclude=".svn" --del --rsh="ssh" "${@}" "${LOCAL_FILE}" "${REMOTE_HOST}:${REMOTE_FILE}"
+	else
+		# assume that we are dealing with a simple diff of a file
+		ssh "${REMOTE_HOST}" -- gzip -c "${REMOTE_FILE}" | gunzip -c | diff "${@}" "${LOCAL_FILE}" -
+	fi
+}
+
+# rsync convenience alias to ease synchronization of local <-> remote file(s).
+alias remotesync='rsync -rlptvz --exclude=".svn" --rsh="ssh"'
+
 # enable programmable completion features (you don't need to enable
 # this, if it's already enabled in /etc/bash.bashrc and /etc/profile
 # sources /etc/bash.bashrc).
