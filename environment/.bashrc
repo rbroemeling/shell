@@ -97,3 +97,8 @@ alias remotesync='rsync -rlptvz --exclude=".svn" --rsh="ssh"'
 #if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
 #	. /etc/bash_completion
 #fi
+
+# check for a 'local' bashrc file and include it if it exists.
+if [ -s "${HOME}/.bashrc.local" ]; then
+	source "${HOME}/.bashrc.local"	
+fi
