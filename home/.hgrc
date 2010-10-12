@@ -1,6 +1,7 @@
 [extensions]
-hgext.convert=
+hgext.convert =
 
 [ui]
+editor = emacs
 username = Remi Broemeling <remi@broemeling.org>
 verbose = True
