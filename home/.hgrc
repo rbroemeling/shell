@@ -1,0 +1,6 @@
+[extensions]
+hgext.convert=
+
+[ui]
+username = Remi Broemeling <remi@broemeling.org>
+verbose = True
