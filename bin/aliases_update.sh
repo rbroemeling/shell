@@ -30,8 +30,10 @@
 # Generate an /etc/aliases file based on the current state of /etc/passwd.
 #
 touch "/etc/aliases.${$}"
-chown --reference="/etc/aliases" "/etc/aliases.${$}"
-chmod --reference="/etc/aliases" "/etc/aliases.${$}"
+if [ -e "/etc/aliases" ]; then
+	chown --reference="/etc/aliases" "/etc/aliases.${$}"
+	chmod --reference="/etc/aliases" "/etc/aliases.${$}"
+fi
 {
 	echo '# /etc/aliases'
 	echo '#'
@@ -67,7 +69,11 @@ if diff -uN -I '^#' "/etc/aliases" "/etc/aliases.${$}"; then
 fi
 
 #
-# Install our updated /etc/aliases file and update our /etc/aliases.db file.
+# Install our updated /etc/aliases file.
 #
-mv -f "/etc/aliases.${$}" "/etc/aliases" 
+mv -f "/etc/aliases.${$}" "/etc/aliases"
+
+#
+# Update our aliases database and inform the mailserver of the changes.
+#
 newaliases
