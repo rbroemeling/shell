@@ -25,6 +25,6 @@ if [ -n "${HOST}" ]; then
 	" | ssh "${HOST}" bash
 else
 	for F in .bash_logout .bashrc .emacs .hgrc .subversion/config .profile .vimrc; do
-		install --backup --mode=0644 --preserve-timestamps --verbose "${F}" "${LOCATION}/${F}"
+		install -D --backup --mode=0644 --preserve-timestamps --verbose "${F}" "${LOCATION}/${F}"
 	done
 fi
