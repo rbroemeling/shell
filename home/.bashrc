@@ -2,6 +2,11 @@
 # see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
 # for examples
 
+# Source any global definitions that are present.
+if [ -s "/etc/bashrc" ]; then
+	source "/etc/bashrc"
+fi
+
 if [ -n "${PS1}" ]; then
 	# We are running interactively, so build the necessary environment
 	# for a user to work in.
