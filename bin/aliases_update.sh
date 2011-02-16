@@ -37,7 +37,11 @@ fi
 {
 	echo '# /etc/aliases'
 	echo '#'
-	echo "# Generation script: $(realpath "${0}")"
+	if which realpath >/dev/null 2>&1; then
+		echo "# Generation script: $(realpath "${0}")"
+	else
+		echo "# Generation script: ${0}"
+	fi
 	echo "# Generation date:   $(date)"
 	echo '#'
 	echo '# Do not edit manually, changes will not be preserved.'
@@ -45,7 +49,16 @@ fi
 	echo '# See `man 5 aliases` for format.'
 	echo '#'
 	echo
-	cat /etc/passwd | awk -F":" '
+	echo '# Basic System Aliases (Static)'
+	echo 'mailer-daemon: root'
+	echo 'noc: root'
+	echo 'postmaster: root'
+	echo 'security: root'
+	echo 'support: root'
+	echo 'webmaster: root'
+	echo
+	echo '# User Aliases (/etc/passwd)'
+	cat /etc/passwd | sort | awk -F':' '
 		{ destination = "root" } # Set default destination of "root".
 		$1 == "+" { next }       # Skip NIS dummy line if we encounter it ("+::::::").
 		
