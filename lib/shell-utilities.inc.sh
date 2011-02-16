@@ -66,20 +66,20 @@ function shutil_remote_source_install
 	local URL="${1}"
 	local ARCHIVE="$(basename "${URL}")"
 	
-	cd /tmp
-	sudo -u nobody wget "${URL}"
+	cd "${HOME}"
+	wget -O "${ARCHIVE}" "${URL}"
 	if [ -t 0 ]; then
 		# stdin is a terminal -- i.e. no custom configure/make/make install
 		# process was passed in on stdin, and therefore we don't have
 		# a custom process to send on to shutil_tarball_source_install.
-		shutil_tarball_source_install "/tmp/${ARCHIVE}"
+		shutil_tarball_source_install "${HOME}/${ARCHIVE}"
 	else
 		# stdin is not a terminal, so we assume that it contains the
 		# command sequence that should be used to configure/make/install
 		# this package, and we therefore pass it on to shutil_tarball_source_install.
-		cat '/dev/stdin' | shutil_tarball_source_install "/tmp/${ARCHIVE}"
+		cat '/dev/stdin' | shutil_tarball_source_install "${HOME}/${ARCHIVE}"
 	fi
-	rm "${ARCHIVE}"
+	rm -fv "${ARCHIVE}"
 }
 
 
@@ -96,8 +96,8 @@ function shutil_tarball_source_install
 	local PACKAGE_NAME="$(basename "${SOURCE_ARCHIVE}")"
 	local DECOMPRESSOR=""
 
-	# Decompress the package archive into /tmp, the source is assumed
-	# to end up in /tmp/${PACKAGE_NAME}
+	# Decompress the package archive into ${HOME}, the source is assumed
+	# to end up in ${HOME}/${PACKAGE_NAME}
 	case "${PACKAGE_NAME}" in
 		*.tar )
 			PACKAGE_NAME="$(basename "${PACKAGE_NAME}" ".tar")"
@@ -119,12 +119,14 @@ function shutil_tarball_source_install
 			return -1
 			;;
 	esac
-	"${DECOMPRESSOR}" "${SOURCE_ARCHIVE}" | sudo -u nobody tar --extract --verbose --directory "/tmp/"
+	"${DECOMPRESSOR}" "${SOURCE_ARCHIVE}" | tar --extract --verbose --directory "${HOME}"
 
 	local STOW_DIR="/usr/local/stow/${PACKAGE_NAME}"
 	mkdir -p "${STOW_DIR}"
 	chown -R nobody "${STOW_DIR}"
-	cd "/tmp/${PACKAGE_NAME}"
+
+	chown -R nobody "${HOME}/${PACKAGE_NAME}"
+	cd "${HOME}/${PACKAGE_NAME}"
 
 	if [ -t 0 ]; then
 		# stdin is a terminal -- i.e. no custom configure/make/make install
@@ -140,15 +142,15 @@ function shutil_tarball_source_install
 		cat '/dev/stdin' | bash
 	fi
 	
-	cd "${STOW_DIR}"
 	# If our stow directory is still owned by 'nobody' (i.e. the code
 	# executed above hasn't changed things), then chown it to 'root'.
-	if [ "$(stat --format='%U' .)" == "nobody" ]; then
-		chown -R root .
+	if [ "$(stat --format='%U' "${STOW_DIR}")" == "nobody" ]; then
+		chown -R root "${STOW_DIR}"
 	fi
-	cd ..
+
+	cd "${STOW_DIR}/.."
 	stow -v "${PACKAGE_NAME}"
-	cd "/tmp"
+	cd "${HOME}"
 	rm -rf "${PACKAGE_NAME}"
 }
 
