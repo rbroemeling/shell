@@ -105,8 +105,3 @@ if [ -n "${PS1}" ]; then
 		source "${HOME}/.bashrc.local"	
 	fi
 fi
-
-# initialize RVM (Ruby Version Manager), if it is installed.
-if [ -s "${HOME}/.rvm/scripts/rvm" ]; then
-	source "${HOME}/.rvm/scripts/rvm"
-fi
