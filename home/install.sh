@@ -26,6 +26,7 @@ if [ -n "${HOST}" ]; then
 else
   find . -type f | while read F; do
     F="${F:2}"
+    [ "${F}" = "install.sh" ] && continue
     if ! diff -q -N "${F}" "${LOCATION}/${F}" >/dev/null 2>&1; then
       install -D --backup --mode=0644 --preserve-timestamps --verbose "${F}" "${LOCATION}/${F}"
     fi
