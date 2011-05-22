@@ -1,6 +1,24 @@
+[alias]
+  br = branch
+  ci = commit
+  co = checkout
+  revertws = !sh -c 'TMPFILE="/tmp/revert_whitespace.$(basename "$0")" && TMPFILE="$(mktemp "$TMPFILE.XXXXXXXXXX")" && echo "preserving original file in $TMPFILE" && cat "$0" > "$TMPFILE" && git checkout "$0" && diff -wu "$0" "$TMPFILE" | patch "$0"'
+  st = status
+
+[color]
+  branch = auto
+  diff = auto
+  interactive = auto
+  status = auto
+  ui = true
+  pager = true
+
 [core]
-	editor = emacs
+  editor = emacs -nw
+
+[diff]
+  renames = copy
 
 [user]
-	name = rbroemeling
-	email = remi@broemeling.org
+  name = Remi Broemeling
+  email = remi@broemeling.org
