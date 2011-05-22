@@ -24,9 +24,10 @@ if [ -n "${HOST}" ]; then
 		rm -rv '${LOCATION}/.environment-install'
 	" | ssh "${HOST}" bash
 else
-	for F in .bash_logout .bashrc .emacs .gitconfig .hgrc .profile .subversion/config .vimrc; do
+  find . -type f | while read F; do
+    F="${F:2}"
 		if ! diff -q -N "${F}" "${LOCATION}/${F}" >/dev/null 2>&1; then
 			install -D --backup --mode=0644 --preserve-timestamps --verbose "${F}" "${LOCATION}/${F}"
 		fi
-	done
+  done
 fi
