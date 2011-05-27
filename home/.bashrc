@@ -99,9 +99,9 @@ if [ -n "${PS1}" ]; then
   #if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
   # . /etc/bash_completion
   #fi
+fi
 
-  # check for a 'local' bashrc file and include it if it exists.
-  if [ -s "${HOME}/.bashrc.local" ]; then
-    source "${HOME}/.bashrc.local"
-  fi
+# check for a 'local' bashrc file and include it if it exists.
+if [ -s "${HOME}/.bashrc.local" ]; then
+  source "${HOME}/.bashrc.local"
 fi
