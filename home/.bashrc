@@ -99,6 +99,12 @@ if [ -n "${PS1}" ]; then
   #if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
   # . /etc/bash_completion
   #fi
+
+  # keychain (ssh-agent) setup
+  if type -P keychain >/dev/null; then
+    keychain --quiet ~/.ssh/id_?sa
+    . "${HOME}/.keychain/${HOSTNAME}-sh"
+  fi
 fi
 
 # check for a 'local' bashrc file and include it if it exists.
