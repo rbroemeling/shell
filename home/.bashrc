@@ -104,6 +104,8 @@ if [ -n "${PS1}" ]; then
   if type -P keychain >/dev/null; then
     keychain --quiet ~/.ssh/id_?sa
     . "${HOME}/.keychain/${HOSTNAME}-sh"
+  else
+    echo -e "[ \033[1;33;40m WARNING \033[0m ] 'keychain' not available, skipping ssh-agent initialization" >&2
   fi
 fi
 
