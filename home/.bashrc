@@ -53,7 +53,7 @@ if [ -n "${PS1}" ]; then
   esac
 
   # add nice colors for ls/grep/fgrep/egrep.
-  if [ -x /usr/bin/dircolors ]; then
+  if type -P dircolors >/dev/null; then
     test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
     alias ls='ls --color=auto'
     alias egrep='egrep --color=auto'
