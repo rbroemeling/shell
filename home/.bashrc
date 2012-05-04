@@ -41,7 +41,7 @@ if [ -n "${PS1}" ]; then
   fi
 
   # set a nice color prompt
-  PS1='[\[\033[1;33m\]\! \[\033[01;30m\]\t\[\033[00m\]][${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]]\$ '
+  PS1='[\[\033[1;33m\]\! \[\033[01;30m\]\t\[\033[00m\]][\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]]\$ '
 
   # if this is an xterm set the title to user@host:dir
   case "$TERM" in
