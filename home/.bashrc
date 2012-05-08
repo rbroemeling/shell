@@ -41,7 +41,7 @@ if [ -n "${PS1}" ]; then
   # if this is an xterm set the title to user@host:dir
   case "$TERM" in
     xterm*|rxvt*)
-      PROMPT_COMMAND='echo -ne "\033]0;${USER}@${HOSTNAME}: ${PWD}\007"'
+      PS1="\[\e]0;\u@\h: \w\a\]$PS1"
       ;;
     *)
       ;;
