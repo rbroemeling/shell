@@ -5,7 +5,10 @@
 # assuming only installation of standard system utilities) Debian install.
 #
 # To call directly from the git repository:
+#   su
 #   wget -q -O - https://raw.github.com/rbroemeling/shell/master/bootstrap/baseline.sh | bash
+# Or:
+#   wget -q -O - https://raw.github.com/rbroemeling/shell/master/bootstrap/baseline.sh | sudo bash
 #
 
 #
