@@ -50,7 +50,7 @@ sudo -u rubybin "\${0%/*}/gem.real" "\${@}"
 if [ ! -L "${STOW_DIR}/bin/gem" ]; then
   sudo mv -f "${STOW_DIR}/bin/gem" "${STOW_DIR}/bin/gem.real"
   sudo ln -sfn gem.wrapper "${STOW_DIR}/bin/gem"
-  sudo chown -h rubybin.nobody "${STOW_DIR}/bin/gem"
+  sudo chown -h rubybin.nogroup "${STOW_DIR}/bin/gem"
 fi
 cd "${STOW_DIR%/*}"
 sudo stow "${STOW_DIR##*/}"
