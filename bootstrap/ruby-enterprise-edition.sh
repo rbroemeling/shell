@@ -56,6 +56,7 @@ cat >"${RUBY_ROOT}/bin/gem.wrapper" <<__EOWRAPPER__
 # from changing anything else.
 #
 
+cd /tmp
 sudo -u rubybin "\${0%/*}/gem.real" "\${@}"
 if [ ! -L "${RUBY_ROOT}/bin/gem" ]; then
   sudo mv -f "${RUBY_ROOT}/bin/gem" "${RUBY_ROOT}/bin/gem.real"
