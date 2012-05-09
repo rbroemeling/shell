@@ -46,7 +46,7 @@ cat >"${STOW_DIR}/bin/gem.wrapper" <<__EOWRAPPER__
 # from changing anything else.
 #
 
-sudo -u rubybin "\\${0%/*}/gem.real" "\\${@}"
+sudo -u rubybin "\${0%/*}/gem.real" "\${@}"
 if [ ! -L "${STOW_DIR}/bin/gem" ]; then
   sudo mv -f "${STOW_DIR}/bin/gem" "${STOW_DIR}/bin/gem.real"
   sudo ln -sfn gem.wrapper "${STOW_DIR}/bin/gem"
