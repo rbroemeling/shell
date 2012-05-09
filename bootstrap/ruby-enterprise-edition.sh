@@ -39,7 +39,7 @@ __EOSHUTIL__
 # Upgrade the rubygems package management system to our preferred version.
 sudo -u rubybin gem install --no-rdoc --no-ri --version 1.8.10 rubygems-update
 sudo -u rubybin ruby "$(gem env gemdir)/gems/rubygems-update-1.8.10/setup.rb"
-sudo -u rubybin gem --executables uninstall rubygems-update
+sudo -u rubybin gem uninstall --executables rubygems-update
 
 RUBY_ROOT="$(gem env gemdir)"
 RUBY_ROOT="${RUBY_ROOT%/*/*/*/*}"
