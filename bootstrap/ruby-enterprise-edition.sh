@@ -11,7 +11,7 @@ if ! grep '^rubybin:' /etc/group >/dev/null 2>&1; then
 else
   echo 'Group rubybin already exists.'
 fi
-if ! grep '^rubybin:x:199' /etc/passwd >/dev/null 2>&1; then
+if ! grep '^rubybin:' /etc/passwd >/dev/null 2>&1; then
   useradd -r --comment 'ruby environment' --gid rubybin --home /usr/local/bin --shell /sbin/nologin rubybin
 else
   echo 'User rubybin already exists.'
