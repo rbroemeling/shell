@@ -3,7 +3,7 @@
 # Install a Ruby Enterprise Edition into a nice, clean, compartmentalized, stowable directory.
 #
 # To call directly from the git repository:
-#   wget -q -O - https://raw.github.com/rbroemeling/shell/master/bootstrap/ree.sh | bash
+#   wget -q -O - https://raw.github.com/rbroemeling/shell/master/bootstrap/ruby-enterprise-edition.sh | bash
 #
 
 if ! grep '^rubybin:' /etc/group >/dev/null 2>&1; then
