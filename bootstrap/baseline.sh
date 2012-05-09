@@ -31,8 +31,7 @@ read UNPRIVILEGED_USER
 # Install Postfix.
 #
 mkdir -p /etc/postfix
-cat > /etc/postfix/main.cf <<EOF
-'__EOF__'
+cat > /etc/postfix/main.cf <<'__EOF__'
 # See /usr/share/postfix/main.cf.dist for a commented, more complete version
 
 append_dot_mydomain = no
@@ -164,4 +163,3 @@ else
   echo "Update /etc/cron.daily/aliases with the real e-mail address mapping for 'root'." >&2
 fi
 rm -r /tmp/shell
-EOF
