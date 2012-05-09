@@ -28,14 +28,24 @@ fi
 shutil_remote_source_install "http://rubyenterpriseedition.googlecode.com/files/ruby-enterprise-1.8.7-2011.03.tar.gz" <<'__EOSHUTIL__'
 sudo -u nobody "runtime/$(uname)-$(uname -m)/ruby" installer.rb --dont-install-useful-gems --auto "${STOW_DIR}"
 
-# Upgrade the rubygems package management system to our preferred version.
-sudo -u nobody "${STOW_DIR}/bin/gem" install --no-rdoc --no-ri --version 1.8.10 rubygems-update
-sudo -u nobody "${STOW_DIR}/bin/ruby $("${STOW_DIR}/bin/gem" env gemdir)/gems/rubygems-update-1.8.10/setup.rb"
-sudo -u nobody "${STOW_DIR}/bin/gem" uninstall rubygems-update
+#
+# Change the owner of our ruby binaries to 'rubybin', so that it is easy to
+# allow gems access to install into that directory without giving them full
+# root access.
+#
+chown -R rubybin "${STOW_DIR}"
+__EOSHUTIL__
 
-cp -a "${STOW_DIR}/bin/gem" "${STOW_DIR}/bin/gem.real"
-cp -a "${STOW_DIR}/bin/gem" "${STOW_DIR}/bin/gem.wrapper"
-cat >"${STOW_DIR}/bin/gem.wrapper" <<__EOWRAPPER__
+# Upgrade the rubygems package management system to our preferred version.
+sudo -u rubybin gem install --no-rdoc --no-ri --version 1.8.10 rubygems-update
+sudo -u rubybin ruby "$(gem env gemdir)/gems/rubygems-update-1.8.10/setup.rb"
+sudo -u rubybin gem --executables uninstall rubygems-update
+
+RUBY_ROOT="$(gem env gemdir)"
+RUBY_ROOT="${RUBY_ROOT%/*/*/*/*}"
+cp -a "${RUBY_ROOT}/bin/gem" "${RUBY_ROOT}/bin/gem.real"
+cp -a "${RUBY_ROOT}/bin/gem" "${RUBY_ROOT}/bin/gem.wrapper"
+cat >"${RUBY_ROOT}/bin/gem.wrapper" <<__EOWRAPPER__
 #!/bin/bash -e
 
 #
@@ -47,20 +57,12 @@ cat >"${STOW_DIR}/bin/gem.wrapper" <<__EOWRAPPER__
 #
 
 sudo -u rubybin "\${0%/*}/gem.real" "\${@}"
-if [ ! -L "${STOW_DIR}/bin/gem" ]; then
-  sudo mv -f "${STOW_DIR}/bin/gem" "${STOW_DIR}/bin/gem.real"
-  sudo ln -sfn gem.wrapper "${STOW_DIR}/bin/gem"
-  sudo chown -h rubybin.nogroup "${STOW_DIR}/bin/gem"
+if [ ! -L "${RUBY_ROOT}/bin/gem" ]; then
+  sudo mv -f "${RUBY_ROOT}/bin/gem" "${RUBY_ROOT}/bin/gem.real"
+  sudo ln -sfn gem.wrapper "${RUBY_ROOT}/bin/gem"
+  sudo chown -h rubybin.nogroup "${RUBY_ROOT}/bin/gem"
 fi
-cd "${STOW_DIR%/*}"
-sudo stow "${STOW_DIR##*/}"
+cd "${RUBY_ROOT%/*}"
+sudo stow "${RUBY_ROOT##*/}"
 __EOWRAPPER__
-ln -sfn gem.wrapper "${STOW_DIR}/bin/gem"
-
-#
-# Change the owner of our ruby binaries to 'rubybin', so that it is easy to
-# allow gems access to install into that directory without giving them full
-# root access.
-#
-chown -R rubybin "${STOW_DIR}"
-__EOSHUTIL__
+ln -sfn gem.wrapper "${RUBY_ROOT}/bin/gem"
