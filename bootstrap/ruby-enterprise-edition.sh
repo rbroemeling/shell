@@ -12,7 +12,7 @@ else
   echo 'Group rubybin already exists.'
 fi
 if ! grep '^rubybin:' /etc/passwd >/dev/null 2>&1; then
-  useradd -r --comment 'ruby environment' --gid rubybin --home /usr/local/bin --shell /sbin/nologin rubybin
+  useradd -M -r --comment 'ruby environment' --gid rubybin --home /dev/null --shell /usr/sbin/nologin rubybin
 else
   echo 'User rubybin already exists.'
 fi
@@ -25,7 +25,7 @@ else
   rm "/tmp/shell-utilities.inc.sh.${$}"
 fi
 
-shutil_remote_source_install "http://rubyenterpriseedition.googlecode.com/files/ruby-enterprise-1.8.7-2011.03.tar.gz" <<'__EOSHUTIL__'
+shutil_remote_source_install "http://rubyenterpriseedition.googlecode.com/files/ruby-enterprise-1.8.7-2012.02.tar.gz" <<'__EOSHUTIL__'
 sudo -u nobody "runtime/$(uname)-$(uname -m)/ruby" installer.rb --dont-install-useful-gems --auto "${STOW_DIR}"
 
 #
@@ -35,11 +35,6 @@ sudo -u nobody "runtime/$(uname)-$(uname -m)/ruby" installer.rb --dont-install-u
 #
 chown -R rubybin "${STOW_DIR}"
 __EOSHUTIL__
-
-# Upgrade the rubygems package management system to our preferred version.
-sudo -u rubybin gem install --no-rdoc --no-ri --version 1.8.10 rubygems-update
-sudo -u rubybin ruby "$(gem env gemdir)/gems/rubygems-update-1.8.10/setup.rb"
-sudo -u rubybin gem uninstall --executables rubygems-update
 
 RUBY_ROOT="$(gem env gemdir)"
 RUBY_ROOT="${RUBY_ROOT%/*/*/*/*}"
@@ -61,9 +56,13 @@ sudo -u rubybin "\${0%/*}/gem.real" "\${@}"
 if [ ! -L "${RUBY_ROOT}/bin/gem" ]; then
   sudo mv -f "${RUBY_ROOT}/bin/gem" "${RUBY_ROOT}/bin/gem.real"
   sudo ln -sfn gem.wrapper "${RUBY_ROOT}/bin/gem"
-  sudo chown -h rubybin.nogroup "${RUBY_ROOT}/bin/gem"
+  sudo chown -h rubybin "${RUBY_ROOT}/bin/gem"
 fi
 cd "${RUBY_ROOT%/*}"
 sudo stow "${RUBY_ROOT##*/}"
 __EOWRAPPER__
 ln -sfn gem.wrapper "${RUBY_ROOT}/bin/gem"
+chown -h rubybin "${RUBY_ROOT}/bin/gem"
+
+cd "${RUBY_ROOT%/*}"
+stow "${RUBY_ROOT##*/}"
