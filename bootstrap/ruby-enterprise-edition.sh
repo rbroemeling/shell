@@ -26,14 +26,15 @@ else
 fi
 
 shutil_remote_source_install "http://rubyenterpriseedition.googlecode.com/files/ruby-enterprise-1.8.7-2012.02.tar.gz" <<'__EOSHUTIL__'
-sudo -u nobody "runtime/$(uname)-$(uname -m)/ruby" installer.rb --dont-install-useful-gems --auto "${STOW_DIR}"
-
 #
 # Change the owner of our ruby binaries to 'rubybin', so that it is easy to
 # allow gems access to install into that directory without giving them full
 # root access.
 #
 chown -R rubybin "${STOW_DIR}"
+
+chown -R rubybin .
+sudo -u rubybin "runtime/$(uname)-$(uname -m)/ruby" installer.rb --dont-install-useful-gems --auto "${STOW_DIR}"
 __EOSHUTIL__
 
 RUBY_ROOT="$(gem env gemdir)"
