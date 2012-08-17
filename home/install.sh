@@ -16,7 +16,7 @@ fi
 LOCATION="${1#*:}"
 
 if [ -n "${HOST}" ]; then
-  rsync -rlptv --exclude=".svn" --rsh="ssh" . "${HOST}:${LOCATION}/.environment-install"
+  rsync -rlptv --rsh="ssh" . "${HOST}:${LOCATION}/.environment-install"
   echo "
     cd '${LOCATION}/.environment-install'
     ./install.sh '${LOCATION}'
