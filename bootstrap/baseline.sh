@@ -28,8 +28,25 @@ echo -n "Enter the unprivileged username to configure (blank for none): "
 read UNPRIVILEGED_USER
 
 #
+# Configure APT.
+#
+cat >/etc/apt/sources.list <<EOF
+deb http://ftp.ca.debian.org/debian/ squeeze main non-free contrib
+deb-src http://ftp.ca.debian.org/debian/ squeeze main non-free contrib
+
+deb http://security.debian.org/ squeeze/updates main non-free contrib
+deb-src http://security.debian.org/ squeeze/updates main non-free contrib
+
+deb http://ftp.ca.debian.org/ squeeze-updates main non-free contrib
+deb-src http://ftp.ca.debian.org/ squeeze-updates main non-free contrib
+EOF
+aptitude update
+aptitude -y safe-upgrade
+
+#
 # Install Postfix.
 #
+hostname --fqdn >/etc/mailname
 mkdir -p /etc/postfix
 cat > /etc/postfix/main.cf <<'__EOF__'
 # See /usr/share/postfix/main.cf.dist for a commented, more complete version
@@ -37,7 +54,7 @@ cat > /etc/postfix/main.cf <<'__EOF__'
 append_dot_mydomain = no
 biff = no
 inet_interfaces = loopback-only
-mydestination = development, $myhostname, localhost.$mydomain, localhost
+mydestination = $myhostname, localhost.$mydomain, localhost
 mynetworks_style = host
 myorigin = /etc/mailname
 readme_directory = no
@@ -115,7 +132,7 @@ aptitude install -y stow
 if [ -h /usr/local/man ]; then
   rm /usr/local/man
 fi
-mkdir -p /usr/local/man
+install --directory --group=staff --mode=2775 --owner=root /usr/local/man
 
 #
 # Install and enable/configure tmpreaper.
@@ -126,8 +143,6 @@ sed -ie 's/^SHOWWARNING/#SHOWWARNING/' /etc/tmpreaper.conf
 
 #
 # Install VMWare tools, if we are on a VMWare instance.
-#
-# Note that this requires the 'contrib' package repository.
 #
 if [ "${VMWARE}" == "TRUE" ]; then
   aptitude -y install open-vm-source
