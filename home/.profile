@@ -24,12 +24,6 @@ if [ -d "$HOME/.bin" ]; then
 	PATH="$HOME/.bin:$PATH"
 fi
 
-# configure our go language installation, if we have one
-if [ -d "$HOME/.go" -a -d "$HOME/.go/current/bin" ];
-  PATH="$PATH:$HOME/.go/current/bin"
-  GOHOME="$HOME/.go/current"
-fi
-
 # if running interactively...
 if [ "$PS1" ]; then
 	# ... disable annoying ^S/^Q commands.
