@@ -67,8 +67,8 @@
 (setq default-truncate-lines t)
 
 ; Turn off the use of tabs rather than spaces for indentation.
-(setq indent-tabs-mode f)
-(setq-default indent-tabs-mode f)
+(setq indent-tabs-mode nil)
+(setq-default indent-tabs-mode nil)
 
 ; Bind the TAB key to insert a tab.
 (global-set-key (kbd "TAB") 'self-insert-command)
