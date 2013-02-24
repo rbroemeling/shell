@@ -66,18 +66,18 @@
 ; to fit them on the screen.
 (setq default-truncate-lines t)
 
-; Turn on the use of tabs rather than spaces for indentation.
-(setq indent-tabs-mode t)
-(setq-default indent-tabs-mode t)
+; Turn off the use of tabs rather than spaces for indentation.
+(setq indent-tabs-mode f)
+(setq-default indent-tabs-mode f)
 
 ; Bind the TAB key to insert a tab.
 (global-set-key (kbd "TAB") 'self-insert-command)
 
 ; Configure TAB widths.
-(setq default-tab-width 8)
-(setq tab-width 8)
-(setq c-basic-indent 8)
+(setq default-tab-width 2)
+(setq tab-width 2)
+(setq c-basic-indent 2)
 
 ; Configure PERL TAB widths.
-(setq perl-indent-level 8)
-(setq perl-continued-statement-offset 8)
+(setq perl-indent-level 2)
+(setq perl-continued-statement-offset 2)
