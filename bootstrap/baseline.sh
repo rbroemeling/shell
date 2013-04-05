@@ -76,6 +76,7 @@ aptitude install -y \
   iftop \
   iputils-ping \
   iputils-tracepath \
+  lrzsz \
   mtr-tiny \
   nmap \
   openssh-server \
