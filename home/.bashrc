@@ -35,8 +35,12 @@ if [ -n "${PS1}" ]; then
   # make less more friendly for non-text input files, see lesspipe(1)
   [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 
-  # set a nice color prompt
-  PS1='[\[\033[0;33m\]\! \[\033[01;30m\]\t\[\033[00m\]][\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]]`[ $? = 0 ] || echo -e "\\033[1;31m"`\$\[\033[00m\] '
+  # 1) prefix the time (24-hour clock) in dark grey:
+  PS1='[\[\033[01;30m\]\t\[\033[00m\]]'
+  # 2) <chroot> <user>@<host>:<working directory>
+  PS1="${PS1}"'[\[\033[01;32m\]${debian_chroot:+($debian_chroot)}\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]]'
+  # 3) terminate with $, coloured red if the last command exited with a non-zero status.
+  PS1="${PS1}\$([[ \$? != 0 ]] && echo \"\[\033[01;31m\]\")\\$\[\033[00m\] "
 
   # if this is an xterm set the title to user@host:dir
   case "$TERM" in
