@@ -4,6 +4,7 @@
   co = checkout
   revertws = !sh -c '[ -e "$GIT_PREFIX$0" ] && TMPFILE="/tmp/revert_whitespace.$(basename "$0")" && TMPFILE="$(mktemp "$TMPFILE.XXXXXXXXXX")" && echo "preserving original file in $TMPFILE" && cat "$GIT_PREFIX$0" > "$TMPFILE" && git checkout "$GIT_PREFIX$0" && diff -wu "$GIT_PREFIX$0" "$TMPFILE" | patch "$GIT_PREFIX$0"'
   st = status
+  track = checkout --track -b
 
 [color]
   branch = auto
