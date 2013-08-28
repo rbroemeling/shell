@@ -23,6 +23,9 @@ fi
 if [ -d "$HOME/.bin" ]; then
 	PATH="$HOME/.bin:$PATH"
 fi
+if [ -d "/usr/local/go/bin" ]; then
+	PATH="$PATH:/usr/local/go/bin"
+fi
 
 # if running interactively...
 if [ "$PS1" ]; then
