@@ -92,6 +92,31 @@ if [ -n "${PS1}" ]; then
   # rsync convenience alias to ease synchronization of local <-> remote file(s).
   alias remotesync='rsync -rlptvz --exclude=".svn" --rsh="ssh"'
 
+  # filesystem mark/jump functions, slightly modified from those by jeroen janssens at
+  #  http://jeroenjanssens.com/2013/08/16/quickly-navigate-your-filesystem-from-the-command-line.html
+  export MARK_ROOT="${HOME}/.marks"
+
+  function jump
+  {
+    cd -P "${MARK_ROOT}/${1}" 2>/dev/null || echo "jump: ${1}: No such mark" >&2
+  }
+
+  function mark
+  {
+    mkdir --parents "${MARK_ROOT}"
+    ln --symbolic --verbose "$(pwd)" "${MARK_ROOT}/${1}"
+  }
+
+  function marks
+  {
+    ls --color=always -l "${MARK_ROOT}" | sed 's/  / /g' | cut --delimiter=' ' --fields=9- | sed 's/ -/\t-/g' | tail --lines=+2
+  }
+
+  function unmark
+  {
+    rm --verbose "${MARK_ROOT}/${1}"
+  }
+
   # enable programmable completion features (you don't need to enable
   # this, if it's already enabled in /etc/bash.bashrc and /etc/profile
   # sources /etc/bash.bashrc).
