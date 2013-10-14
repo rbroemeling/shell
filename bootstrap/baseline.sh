@@ -78,6 +78,7 @@ aptitude install -y \
   iftop \
   iputils-ping \
   iputils-tracepath \
+  keychain \
   lrzsz \
   mtr-tiny \
   nmap \
