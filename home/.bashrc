@@ -103,9 +103,12 @@ if [ -n "${PS1}" ]; then
   #fi
 
   # keychain (ssh-agent) setup
-  if type -P keychain >/dev/null; then
-    keychain --quiet ~/.ssh/id_?sa
-    . "${HOME}/.keychain/${HOSTNAME}-sh"
+  if [ -n "${SSH_AGENT_PID}" ]; then
+    echo -e "[ \033[1;37;40m INFO \033[0m ] inheriting SSH_AGENT_PID: ${SSH_AGENT_PID}" >&2
+  elif [ -n "${SSH_AUTH_SOCK}" ]; then
+    echo -e "[ \033[1;37;40m INFO \033[0m ] inheriting SSH_AUTH_SOCK: ${SSH_AUTH_SOCK}" >&2
+  elif type -P keychain >/dev/null; then
+    eval `keychain --eval --ignore-missing --quiet id_rsa id_dsa id_ecdsa`
   else
     echo -e "[ \033[1;33;40m WARNING \033[0m ] 'keychain' not available, skipping ssh-agent initialization" >&2
   fi
