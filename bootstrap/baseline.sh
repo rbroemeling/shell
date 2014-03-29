@@ -31,14 +31,21 @@ read UNPRIVILEGED_USER
 # Configure APT.
 #
 cat >/etc/apt/sources.list <<EOF
-deb http://ftp.ca.debian.org/debian/ wheezy main non-free contrib
-deb-src http://ftp.ca.debian.org/debian/ wheezy main non-free contrib
+# debian
+deb http://ftp.ca.debian.org/debian/ wheezy main contrib non-free
+deb-src http://ftp.ca.debian.org/debian/ wheezy main contrib non-free
 
-deb http://security.debian.org/ wheezy/updates main non-free contrib
-deb-src http://security.debian.org/ wheezy/updates main non-free contrib
+# debian-backports
+deb http://ftp.ca.debian.org/debian/ wheezy-backports main contrib non-free
+deb-src http://ftp.ca.debian.org/debian/ wheezy-backports main contrib non-free
 
-deb http://ftp.ca.debian.org/ wheezy-updates main non-free contrib
-deb-src http://ftp.ca.debian.org/ wheezy-updates main non-free contrib
+# debian-updates
+deb http://ftp.ca.debian.org/debian/ wheezy-updates main contrib non-free
+deb-src http://ftp.ca.debian.org/debian/ wheezy-updates main contrib non-free
+
+# debian-security
+deb http://security.debian.org/ wheezy/updates main contrib non-free
+deb-src http://security.debian.org/ wheezy/updates main contrib non-free
 EOF
 aptitude update
 aptitude -y safe-upgrade
