@@ -48,7 +48,7 @@ deb http://security.debian.org/ wheezy/updates main contrib non-free
 deb-src http://security.debian.org/ wheezy/updates main contrib non-free
 EOF
 aptitude update
-aptitude -y safe-upgrade
+aptitude safe-upgrade -y
 
 #
 # Install Postfix.
@@ -157,9 +157,16 @@ if [ "${VMWARE}" == "TRUE" ]; then
 fi
 
 #
+# Remove pacakges that generally we do not want nor need.
+#
+aptitude remove -y \
+  nfs-common \
+  rpcbind
+
+#
 # Purge any 'removed' packages.
 #
-aptitude -y purge '~c'
+aptitude purge -y '~c'
 
 #
 # Install some utility scripts, and our user environment if necessary.
