@@ -24,9 +24,6 @@ if dpkg -l xinit >/dev/null 2>&1; then
   X11="TRUE"
 fi
 
-echo -n "Enter the unprivileged username to configure (blank for none): "
-read UNPRIVILEGED_USER
-
 #
 # Configure APT.
 #
@@ -180,6 +177,7 @@ aptitude purge -y '~c'
 cd /tmp
 git clone git://github.com/rbroemeling/shell.git
 install shell/bin/aliases_update.sh /etc/cron.daily/aliases
+read -e -p "Enter the unprivileged username to configure (blank for none): " -t 300 UNPRIVILEGED_USER
 if [ -n "${UNPRIVILEGED_USER}" ]; then
   usermod -a -G adm "${UNPRIVILEGED_USER}"
   usermod -a -G staff "${UNPRIVILEGED_USER}"
