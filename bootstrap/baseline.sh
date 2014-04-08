@@ -157,6 +157,12 @@ if [ "${VMWARE}" == "TRUE" ]; then
 fi
 
 #
+# Disable unnecessary/unused TTYs.
+#
+sed -ie 's/^\(.* tty[3456]\)$/#\1/g' /etc/inittab
+/sbin/telinit q
+
+#
 # Remove pacakges that generally we do not want nor need.
 #
 aptitude remove -y \
