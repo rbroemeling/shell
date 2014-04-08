@@ -55,21 +55,22 @@ aptitude -y safe-upgrade
 #
 hostname --fqdn >/etc/mailname
 mkdir -p /etc/postfix
-cat > /etc/postfix/main.cf <<'__EOF__'
+cat > /etc/postfix/main.cf <<__EOF__
 # See /usr/share/postfix/main.cf.dist for a commented, more complete version
 
 append_dot_mydomain = no
 biff = no
 inet_interfaces = loopback-only
-mailbox_command = procmail -a "$EXTENSION"
+mailbox_command = procmail -a "\$EXTENSION"
 mailbox_size_limit = 0
-mydestination = $myhostname, localhost.$mydomain, localhost
+mydestination = \$myhostname, localhost.\$mydomain, localhost
+mydomain = $(hostname --domain)
 mynetworks_style = host
 myorigin = /etc/mailname
 readme_directory = no
 #relayhost = A.B.C.D:smtp
 recipient_delimiter = +
-smtpd_banner = $myhostname ESMTP $mail_name (Debian/GNU)
+smtpd_banner = \$myhostname ESMTP \$mail_name (Debian/GNU)
 __EOF__
 aptitude install -y postfix
 
