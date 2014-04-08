@@ -10,6 +10,9 @@
 # Or:
 #   wget -q -O - https://raw.github.com/rbroemeling/shell/master/bootstrap/baseline.sh | sudo bash
 #
+# To setup an unprivileged user at the same time:
+#  wget -q -O - https://raw.github.com/rbroemeling/shell/master/bootstrap/baseline.sh | sudo env UNPRIVILEGED_USER=<username> bash
+#
 
 #
 # Set flags about what type of system we are building on.
@@ -177,7 +180,6 @@ aptitude purge -y '~c'
 cd /tmp
 git clone git://github.com/rbroemeling/shell.git
 install shell/bin/aliases_update.sh /etc/cron.daily/aliases
-read -e -p "Enter the unprivileged username to configure (blank for none): " -t 300 UNPRIVILEGED_USER
 if [ -n "${UNPRIVILEGED_USER}" ]; then
   usermod -a -G adm "${UNPRIVILEGED_USER}"
   usermod -a -G staff "${UNPRIVILEGED_USER}"
