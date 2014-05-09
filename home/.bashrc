@@ -36,9 +36,9 @@ if [ -n "${PS1}" ]; then
   [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 
   # 1) prefix the time (24-hour clock) in dark grey:
-  PS1='[\[\033[01;30m\]\t\[\033[00m\]]'
+  PS1='[\[\033[37m\]\t\[\033[00m\]]'
   # 2) <chroot> <user>@<host>:<working directory>
-  PS1="${PS1}"'[\[\033[01;32m\]${debian_chroot:+($debian_chroot)}\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]]'
+  PS1="${PS1}"'[\[\033[01;35m\]${debian_chroot:+($debian_chroot)}\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]]'
   # 3) terminate with $, coloured red if the last command exited with a non-zero status.
   PS1="${PS1}\$([[ \$? != 0 ]] && echo \"\[\033[01;31m\]\")\\$\[\033[00m\] "
 
@@ -104,13 +104,13 @@ if [ -n "${PS1}" ]; then
 
   # keychain (ssh-agent) setup
   if [ -n "${SSH_AGENT_PID}" ]; then
-    echo -e "[ \033[1;37;40m INFO \033[0m ] inheriting SSH_AGENT_PID: ${SSH_AGENT_PID}" >&2
+    echo -e "\033[32m[ INFO ]\033[0m inheriting SSH_AGENT_PID: ${SSH_AGENT_PID}" >&2
   elif [ -n "${SSH_AUTH_SOCK}" ]; then
-    echo -e "[ \033[1;37;40m INFO \033[0m ] inheriting SSH_AUTH_SOCK: ${SSH_AUTH_SOCK}" >&2
+    echo -e "\033[32m[ INFO ]\033[0m inheriting SSH_AUTH_SOCK: ${SSH_AUTH_SOCK}" >&2
   elif type -P keychain >/dev/null; then
     eval `keychain --eval --ignore-missing --quiet id_rsa id_dsa id_ecdsa`
   else
-    echo -e "[ \033[1;33;40m WARNING \033[0m ] 'keychain' not available, skipping ssh-agent initialization" >&2
+    echo -e "\033[31m[ WARNING ]\033[0m 'keychain' not available, skipping ssh-agent initialization" >&2
   fi
 fi
 
