@@ -23,9 +23,6 @@ fi
 if [ -d "$HOME/.bin" ]; then
 	PATH="$HOME/.bin:$PATH"
 fi
-if [ -d "/usr/local/go/bin" ]; then
-	PATH="$PATH:/usr/local/go/bin"
-fi
 
 # if running interactively...
 if [ "$PS1" ]; then
@@ -39,4 +36,9 @@ if [ "$PS1" ]; then
 		w
 		echo
 	fi
+fi
+
+# check for a 'local' profile file and include it if it exists.
+if [ -s "${HOME}/.profile.local" ]; then
+  source "${HOME}/.profile.local"
 fi
