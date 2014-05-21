@@ -39,6 +39,6 @@ if [ "$PS1" ]; then
 fi
 
 # check for a 'local' profile file and include it if it exists.
-if [ -s "${HOME}/.profile.local" ]; then
-  source "${HOME}/.profile.local"
+if [ -s "$HOME/.profile.local" ]; then
+  source "$HOME/.profile.local"
 fi
