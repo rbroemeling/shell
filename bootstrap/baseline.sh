@@ -30,6 +30,8 @@ fi
 #
 # Configure APT.
 #
+echo 'APT::Install-Recommends "false";' > /etc/apt/apt.conf.d/99recommends
+echo 'APT::Install-Suggests "false";' > /etc/apt/apt.conf.d/99suggests
 cat >/etc/apt/sources.list <<EOF
 # debian
 deb http://ftp.ca.debian.org/debian/ wheezy main contrib non-free
