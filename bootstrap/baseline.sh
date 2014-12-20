@@ -107,6 +107,7 @@ aptitude install -y \
 # Install development tools and utilities.
 #
 aptitude install -y \
+  ack-grep \
   git \
   subversion \
   autoconf \

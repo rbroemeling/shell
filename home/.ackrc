@@ -1,0 +1,11 @@
+--type-add=css:ext:sass,scss,css.erb
+--type-add=html:ext:haml
+--type-add=markdown:ext:md,mmd,markdown
+--type-add=puppet:ext:pp
+--type-add=ruby:is:Gemfiles
+--type-add=ruby:ext:gemspec,ru
+
+--color-filename=blue
+--color-lineno=cyan
+--color-match=red
+--sort-files
