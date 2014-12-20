@@ -35,8 +35,10 @@ def transcode(path):
 		line = control_characters_re.sub("", line)
 		line = unicode(line, "utf-8", errors="ignore")
 		if line.find("error") != -1:
+			logging.debug(u"ffmpeg error detected: {error_message}".format(error_message=line))
 			errors += 1
 		if line.find("warning") != -1:
+			logging.debug(u"ffmpeg warning detected: {error_message}".format(error_message=line))
 			warnings += 1
 	return (errors + warnings)
 
@@ -78,7 +80,7 @@ def configure():
 		type=int
 	)
 	parser.add_argument(
-		"-t", "--run-time",
+		"-t", "--maximum-run-time",
 		default=None,
 		help="run continually for at most SECS seconds (default: run until all pending files are verified)",
 		metavar="SECS",
@@ -228,7 +230,7 @@ class MediaRow(object):
 			self._checksum = value
 		else:
 			self.checksum_updated = False
-		if (original_checksum is not None) or (self._checksum is not None):
+		if self.checksum_updated and (original_checksum is not None):
 			logging.log(logging_level, u"checksum({path}): {original_checksum} => {new_checksum}".format(new_checksum=self._checksum, original_checksum=original_checksum, path=self.path))
 
 	@property
@@ -248,7 +250,7 @@ class MediaRow(object):
 			self._size = value
 		else:
 			self.size_updated = False
-		if (original_size is not None) or (self._size is not None):
+		if self.size_updated and (original_size is not None):
 			if original_size is not None:
 				original_size = u"{original_size:,d}".format(original_size=original_size)
 			new_size = self._size
@@ -275,7 +277,7 @@ class MediaRow(object):
 			if self._transcode_errors > 0:
 				logging_level = logging.WARNING
 			self.transcode_errors_updated = False
-		if (original_transcode_errors is not None) or (self._transcode_errors is not None):
+		if self.transcode_errors_updated and (original_transcode_errors is not None):
 			if original_transcode_errors is not None:
 				original_transcode_errors = u"{original_transcode_errors:,d}".format(original_transcode_errors=original_transcode_errors)
 			new_transcode_errors = self._transcode_errors
@@ -312,8 +314,10 @@ if __name__ == "__main__":
 	if arguments.report is not None:
 		MediaRow.report(db, arguments.report)
 		sys.exit(0)
-	if arguments.run_time is not None:
-		arguments.run_time = time.time() + arguments.run_time
+	if arguments.maximum_run_time is not None:
+		run_time_threshold = time.time() + arguments.maximum_run_time
+	else:
+		run_time_threshold = None
 
 	for root in arguments.directories:
 		count = 0
@@ -326,11 +330,13 @@ if __name__ == "__main__":
 
 	media_verification_count = 0
 	while True:
-		if (arguments.run_time is not None) and (time.time() > arguments.run_time):
+		if (run_time_threshold is not None) and (time.time() > run_time_threshold):
+			logging.info("maximum allowable run time ({maximum_run_time} seconds) has elapsed, exiting...".format(maximum_run_time=arguments.maximum_run_time))
 			break;
 
 		media_verification_count += 1
 		if (arguments.maximum_media_verifications is not None) and (media_verification_count > arguments.maximum_media_verifications):
+			logging.info("maximum allowable media verifications ({maximum_media_verifications}) have been executed, exiting...".format(maximum_media_verifications=arguments.maximum_media_verifications))
 			break;
 
 		if arguments.checksum_every > 0:
@@ -339,10 +345,12 @@ if __name__ == "__main__":
 			checksum_threshold = None
 		m = MediaRow.eldest(db, checksum_threshold)
 		if m is None:
+			logging.info("no pending media verifications to execute, exiting...")
 			break
 		if not os.path.isfile(m.path):
 			m.remove()
 		else:
+			logging.info("media verification #{media_verification_count} executing: {path}".format(media_verification_count=media_verification_count, path=m.path))
 			m.size = os.stat(m.path).st_size
 			if (checksum_threshold is not None) and (m.size_updated or (m.checksum_timestamp is None) or (m.checksum_timestamp < checksum_threshold)):
 				m.checksum = checksum(m.path)
