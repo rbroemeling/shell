@@ -11,7 +11,7 @@ import subprocess
 import sys
 import time
 
-__version__ = "0.1.2"
+__version__ = "0.2.0"
 
 
 def checksum(path):
@@ -64,10 +64,10 @@ def configure():
 		metavar="GLOB"
 	)
 	parser.add_argument(
-		"--transcode-every",
-		default=30,
-		help="how often (in days) to validate media file transcode errors (default: %(default)s, set to 0 to disable transcode validation)",
-		metavar="DAYS",
+		"-n", "--maximum-media-verifications",
+		default=None,
+		help="the maximum number of media files to verify (default: verify all pending files)",
+		metavar="NVERIFIES",
 		type=int
 	)
 	parser.add_argument(
@@ -80,7 +80,7 @@ def configure():
 	parser.add_argument(
 		"-t", "--run-time",
 		default=None,
-		help="run continually for at most SECS seconds (default: run until no more files have work pending)",
+		help="run continually for at most SECS seconds (default: run until all pending files are verified)",
 		metavar="SECS",
 		type=int
 	)
@@ -103,7 +103,6 @@ def configure():
 	)
 	arguments = parser.parse_args()
 	arguments.checksum_every *= 24 * 3600
-	arguments.transcode_every *= 24 * 3600
 
 	loglevel = logging.WARNING
 	if arguments.verbose >= 1:
@@ -116,7 +115,7 @@ def configure():
 	return arguments
 
 
-class MediaDB:
+class MediaDB(object):
 	def __init__(self, path):
 		self.cnx = None
 		self.path = path
@@ -154,14 +153,14 @@ class MediaDB:
 		self.cnx.execute("CREATE UNIQUE INDEX IF NOT EXISTS media_path_idx ON media (path)")
 
 
-class MediaRow:
+class MediaRow(object):
 	@classmethod
 	def report(self, db, errcnt):
 		for row in db.cnx.execute("SELECT * FROM media WHERE transcode_errors >= ? ORDER BY path", (errcnt,)):
 			print u"{errors:>3d} {path}".format(errors=row['transcode_errors'], path=row['path']).encode("utf-8")
 
 	@classmethod
-	def eldest(self, db, checksum_threshold, transcode_threshold):
+	def eldest(self, db, checksum_threshold):
 		cur = db.cnx.cursor()
 		row = None
 
@@ -170,10 +169,6 @@ class MediaRow:
 
 		if (row is None) and (checksum_threshold is not None):
 			cur.execute("SELECT ROWID, * FROM media WHERE (checksum_timestamp IS NULL) OR (checksum_timestamp < ?) ORDER BY checksum_timestamp ASC LIMIT 1", (checksum_threshold,))
-			row = cur.fetchone()
-
-		if (row is None) and (transcode_threshold is not None):
-			cur.execute("SELECT ROWID, * FROM media WHERE (transcode_timestamp IS NULL) OR (transcode_timestamp < ?) ORDER BY transcode_timestamp ASC LIMIT 1", (transcode_threshold,))
 			row = cur.fetchone()
 
 		cur.close()
@@ -206,17 +201,93 @@ class MediaRow:
 
 	def clear(self):
 		self.id = None
-		self.checksum = None
+		self._checksum = None
 		self.checksum_timestamp = None
-		self.transcode_errors = None
+		self.checksum_updated = False
+		self._transcode_errors = None
+		self.transcode_errors_updated = False
 		self.transcode_timestamp = None
 		self.path = None
-		self.size = None
+		self._size = None
+		self.size_updated = False
+
+	@property
+	def checksum(self):
+		return self._checksum
+
+	@checksum.setter
+	def checksum(self, value):
+		logging_level = logging.DEBUG
+		original_checksum = self._checksum
+		if self._checksum != value:
+			if self._checksum is None:
+				logging_level = logging.INFO
+			else:
+				logging_level = logging.ERROR
+			self.checksum_updated = True
+			self._checksum = value
+		else:
+			self.checksum_updated = False
+		if (original_checksum is not None) or (self._checksum is not None):
+			logging.log(logging_level, u"checksum({path}): {original_checksum} => {new_checksum}".format(new_checksum=self._checksum, original_checksum=original_checksum, path=self.path))
+
+	@property
+	def size(self):
+		return self._size
+
+	@size.setter
+	def size(self, value):
+		logging_level = logging.DEBUG
+		original_size = self._size
+		if self._size != value:
+			if self._size is None:
+				logging_level = logging.INFO
+			else:
+				logging_level = logging.ERROR
+			self.size_updated = True
+			self._size = value
+		else:
+			self.size_updated = False
+		if (original_size is not None) or (self._size is not None):
+			if original_size is not None:
+				original_size = u"{original_size:,d}".format(original_size=original_size)
+			new_size = self._size
+			if new_size is not None:
+				new_size = u"{new_size:,d}".format(new_size=new_size)
+			logging.log(logging_level, u"size({path}): {original_size} => {new_size}".format(new_size=new_size, original_size=original_size, path=self.path))
+
+	@property
+	def transcode_errors(self):
+		return self._transcode_errors
+
+	@transcode_errors.setter
+	def transcode_errors(self, value):
+		logging_level = logging.DEBUG
+		original_transcode_errors = self._transcode_errors
+		if self._transcode_errors != value:
+			self.transcode_errors_updated = True
+			self._transcode_errors = value
+			if self._transcode_errors > 0:
+				logging_level = logging.ERROR
+			else:
+				logging_level = logging.INFO
+		else:
+			if self._transcode_errors > 0:
+				logging_level = logging.WARNING
+			self.transcode_errors_updated = False
+		if (original_transcode_errors is not None) or (self._transcode_errors is not None):
+			if original_transcode_errors is not None:
+				original_transcode_errors = u"{original_transcode_errors:,d}".format(original_transcode_errors=original_transcode_errors)
+			new_transcode_errors = self._transcode_errors
+			if new_transcode_errors is not None:
+				new_transcode_errors = u"{new_transcode_errors:,d}".format(new_transcode_errors=new_transcode_errors)
+			logging.log(logging_level, u"transcode errors({path}): {original_transcode_errors} => {new_transcode_errors}".format(new_transcode_errors=new_transcode_errors, original_transcode_errors=original_transcode_errors, path=self.path))
 
 	def load(self, row):
 		(self.id, self.checksum, self.checksum_timestamp, self.transcode_errors, self.transcode_timestamp, self.path, self.size) = row
 
 	def remove(self):
+		logging.warning(u"exists({path}): True => False".format(path=self.path))
 		self.cur.execute("DELETE FROM media WHERE ROWID = ?", (self.id,))
 		self.db.commit()
 		self.clear()
@@ -253,61 +324,30 @@ if __name__ == "__main__":
 					MediaRow.ensure(db, unicode(os.path.join(root, file), "utf-8"))
 		logging.info("found {count:,d} media files within root: {root}".format(count=count, root=root))
 
-	checksum_threshold = None
-	transcode_threshold = None
-	while ((arguments.run_time is None) or (time.time() < arguments.run_time)):
+	media_verification_count = 0
+	while True:
+		if (arguments.run_time is not None) and (time.time() > arguments.run_time):
+			break;
+
+		media_verification_count += 1
+		if (arguments.maximum_media_verifications is not None) and (media_verification_count > arguments.maximum_media_verifications):
+			break;
+
 		if arguments.checksum_every > 0:
 			checksum_threshold = time.time() - arguments.checksum_every
-		if arguments.transcode_every > 0:
-			transcode_threshold = time.time() - arguments.transcode_every
-
-		m = MediaRow.eldest(db, checksum_threshold, transcode_threshold)
+		else:
+			checksum_threshold = None
+		m = MediaRow.eldest(db, checksum_threshold)
 		if m is None:
 			break
 		if not os.path.isfile(m.path):
-			logging.warning(u"exists({path}): True => False".format(path=m.path))
 			m.remove()
 		else:
-			sz = os.stat(m.path).st_size
-			lvl = logging.DEBUG
-			if m.size is None:
-				lvl = logging.INFO
-			elif sz != m.size:
-				lvl = logging.ERROR
-			if m.size is None:
-				logging.log(lvl, u"size({path}): None => {calculated:,d}".format(calculated=sz, path=m.path))
-			else:
-				logging.log(lvl, u"size({path}): {original:,d} => {calculated:,d}".format(calculated=sz, original=m.size, path=m.path))
-			m.size = sz
-
-			if (checksum_threshold is not None) and ((m.checksum_timestamp is None) or (m.checksum_timestamp < checksum_threshold)):
-				cksum = checksum(m.path)
-				lvl = logging.INFO
-				if m.checksum is not None:
-					if cksum != m.checksum:
-						lvl = logging.ERROR
-					else:
-						lvl = logging.DEBUG
-				logging.log(lvl, u"checksum({path}): {original} => {calculated}".format(calculated=cksum, original=m.checksum, path=m.path))
-				m.checksum = cksum
+			m.size = os.stat(m.path).st_size
+			if (checksum_threshold is not None) and (m.size_updated or (m.checksum_timestamp is None) or (m.checksum_timestamp < checksum_threshold)):
+				m.checksum = checksum(m.path)
 				m.checksum_timestamp = time.time()
-
-			if (transcode_threshold is not None) and ((m.transcode_timestamp is None) or (m.transcode_timestamp < transcode_threshold)):
-				err = transcode(m.path)
-				lvl = logging.DEBUG
-				if m.transcode_errors == err:
-					if err > 0:
-						lvl = logging.WARNING
-				else:
-					if err == 0:
-						lvl = logging.INFO
-					else:
-						lvl = logging.ERROR
-				if m.transcode_errors is None:
-					logging.log(lvl, u"transcode errors({path}): None => {calculated:,d}".format(calculated=err, path=m.path))
-				else:
-					logging.log(lvl, u"transcode errors({path}): {original:,d} => {calculated:,d}".format(calculated=err, original=m.transcode_errors, path=m.path))
-				m.transcode_errors = err
-				m.transcode_timestamp = time.time()
-
+				if (m.checksum_updated):
+					m.transcode_errors = transcode(m.path)
+					m.transcode_timestamp = time.time()
 			m.save()
