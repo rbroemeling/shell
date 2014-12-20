@@ -1,6 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
+#
+# This is a general utility script to monitor a media library and ensure that the files within it
+# are valid and remain that way.  It is designed specifically to detect when corrupt media files are
+# added or when a previously correct media file is corrupted (by bad disk sectors, for example).
+#
 import argparse
 import fnmatch
 import logging
@@ -11,7 +15,7 @@ import subprocess
 import sys
 import time
 
-__version__ = "0.2.2"
+__version__ = "0.2.3"
 
 
 def checksum(path):
@@ -155,6 +159,21 @@ class MediaDB(object):
 			self.cnx.close()
 			self.cnx = None
 
+	def fetch_pending(self, checksum_threshold):
+		cur = self.cnx.cursor()
+		cur.execute("SELECT ROWID, * FROM media WHERE size IS NULL LIMIT 1")
+		row = cur.fetchone()
+
+		if (row is None) and (checksum_threshold is not None):
+			cur.execute("SELECT ROWID, * FROM media WHERE (checksum_timestamp IS NULL) OR (checksum_timestamp < ?) ORDER BY checksum_timestamp ASC LIMIT 1", (checksum_threshold,))
+			row = cur.fetchone()
+
+		cur.close()
+		if row is None:
+			return None
+		else:
+			return MediaRow(self, row)
+
 	def iterate_all(self):
 		for row in self.cnx.execute("SELECT ROWID, * FROM media ORDER BY path"):
 			yield MediaRow(self, row)
@@ -169,23 +188,6 @@ class MediaDB(object):
 
 
 class MediaRow(object):
-	@classmethod
-	def eldest(self, db, checksum_threshold):
-		cur = db.cnx.cursor()
-		row = None
-
-		cur.execute("SELECT ROWID, * FROM media WHERE size is NULL LIMIT 1")
-		row = cur.fetchone()
-
-		if (row is None) and (checksum_threshold is not None):
-			cur.execute("SELECT ROWID, * FROM media WHERE (checksum_timestamp IS NULL) OR (checksum_timestamp < ?) ORDER BY checksum_timestamp ASC LIMIT 1", (checksum_threshold,))
-			row = cur.fetchone()
-
-		cur.close()
-		if row is None:
-			return None
-		return MediaRow(db, row)
-
 	@classmethod
 	def ensure(self, db, path):
 		cur = db.cnx.cursor()
@@ -328,6 +330,7 @@ if __name__ == "__main__":
 	else:
 		run_time_threshold = None
 
+	# Add all new files in the listed directories to the database.
 	for root in arguments.directories:
 		count = 0
 		for root, directories, files in os.walk(root, topdown=False, followlinks=True):
@@ -336,11 +339,18 @@ if __name__ == "__main__":
 					count += 1
 					MediaRow.ensure(db, unicode(os.path.join(root, file), "utf-8"))
 		logging.info("found {count:,d} media files within root: {root}".format(count=count, root=root))
+
+	# If pruning is enabled, remove all rows from the database that don't exist on disk.
 	if arguments.prune:
 		for m in db.iterate_all():
 			if not os.path.isfile(m.path):
 				m.remove()
 
+	# Loop over our 'pending' (i.e. ready to be verified) media files and verify them
+	# until either:
+	#   (1) there are no more pending media files.
+	#   (2) we run out of time (as per --maximum-run-time).
+	#   (3) we have verified --maximum-media-verifications media files.
 	media_verification_count = 0
 	while True:
 		if (run_time_threshold is not None) and (time.time() > run_time_threshold):
@@ -355,7 +365,7 @@ if __name__ == "__main__":
 			checksum_threshold = time.time() - arguments.checksum_every
 		else:
 			checksum_threshold = None
-		m = MediaRow.eldest(db, checksum_threshold)
+		m = db.fetch_pending(checksum_threshold)
 		if m is None:
 			logging.info("no pending media verifications to execute, exiting...")
 			break
