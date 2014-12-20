@@ -11,7 +11,7 @@ import subprocess
 import sys
 import time
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 
 def checksum(path):
@@ -44,8 +44,8 @@ def transcode(path):
 def configure():
 	parser = argparse.ArgumentParser(description="Check all media files under the given directory for validity.")
 	parser.add_argument(
-		"--checksum-every",
-		default=7,
+		"-c", "--checksum-every",
+		default=14,
 		help="how often (in days) to validate media file checksums (default: %(default)s, set to 0 to disable checksum validation)",
 		metavar="DAYS",
 		type=int,
