@@ -32,22 +32,26 @@ fi
 #
 echo 'APT::Install-Recommends "false";' > /etc/apt/apt.conf.d/99recommends
 echo 'APT::Install-Suggests "false";' > /etc/apt/apt.conf.d/99suggests
-cat >/etc/apt/sources.list <<EOF
+echo '# APT sources are kept in /etc/apt/sources.list.d/*.list' >/etc/apt/sources.list
+cat >/etc/apt/sources.list.d/debian.list <<EOF
 # debian
 deb http://ftp.ca.debian.org/debian/ wheezy main contrib non-free
 deb-src http://ftp.ca.debian.org/debian/ wheezy main contrib non-free
-
-# debian-backports
-deb http://ftp.ca.debian.org/debian/ wheezy-backports main contrib non-free
-deb-src http://ftp.ca.debian.org/debian/ wheezy-backports main contrib non-free
-
-# debian-updates
-deb http://ftp.ca.debian.org/debian/ wheezy-updates main contrib non-free
-deb-src http://ftp.ca.debian.org/debian/ wheezy-updates main contrib non-free
-
+EOF
+cat >/etc/apt/sources.list.d/debian-security.list <<EOF
 # debian-security
 deb http://security.debian.org/ wheezy/updates main contrib non-free
 deb-src http://security.debian.org/ wheezy/updates main contrib non-free
+EOF
+cat >/etc/apt/sources.list.d/debian-backports.list <<EOF
+# debian-backports
+deb http://ftp.ca.debian.org/debian/ wheezy-backports main contrib non-free
+deb-src http://ftp.ca.debian.org/debian/ wheezy-backports main contrib non-free
+EOF
+cat >/etc/apt/sources.list.d/debian-updates.list <<EOF
+# debian-updates
+deb http://ftp.ca.debian.org/debian/ wheezy-updates main contrib non-free
+deb-src http://ftp.ca.debian.org/debian/ wheezy-updates main contrib non-free
 EOF
 aptitude update
 aptitude safe-upgrade -y
