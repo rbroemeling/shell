@@ -11,7 +11,7 @@ import subprocess
 import sys
 import time
 
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 
 
 def checksum(path):
@@ -71,6 +71,11 @@ def configure():
 		help="the maximum number of media files to verify (default: verify all pending files)",
 		metavar="NVERIFIES",
 		type=int
+	)
+	parser.add_argument(
+		"-p", "--prune",
+		action="store_true",
+		help="prune files that no longer exist out of the database (default: leave files that no longer exist in the database)"
 	)
 	parser.add_argument(
 		"-r", "--report",
@@ -150,17 +155,20 @@ class MediaDB(object):
 			self.cnx.close()
 			self.cnx = None
 
+	def iterate_all(self):
+		for row in self.cnx.execute("SELECT ROWID, * FROM media ORDER BY path"):
+			yield MediaRow(self, row)
+
+	def iterate_errored(self, error_threshold):
+		for row in self.cnx.execute("SELECT ROWID, * FROM media WHERE transcode_errors >= ? ORDER BY path", (error_threshold,)):
+			yield MediaRow(self, row)
+
 	def schema_ensure(self):
 		self.cnx.execute("CREATE TABLE IF NOT EXISTS media (checksum character(8), checksum_timestamp int, transcode_errors int, transcode_timestamp int, path text, size int)")
 		self.cnx.execute("CREATE UNIQUE INDEX IF NOT EXISTS media_path_idx ON media (path)")
 
 
 class MediaRow(object):
-	@classmethod
-	def report(self, db, errcnt):
-		for row in db.cnx.execute("SELECT * FROM media WHERE transcode_errors >= ? ORDER BY path", (errcnt,)):
-			print u"{errors:>3d} {path}".format(errors=row['transcode_errors'], path=row['path']).encode("utf-8")
-
 	@classmethod
 	def eldest(self, db, checksum_threshold):
 		cur = db.cnx.cursor()
@@ -312,7 +320,8 @@ if __name__ == "__main__":
 		sys.exit(7)
 
 	if arguments.report is not None:
-		MediaRow.report(db, arguments.report)
+		for m in db.iterate_errored(arguments.report):
+			print u"{errors:>3d} {path}".format(errors=m.transcode_errors, path=m.path)
 		sys.exit(0)
 	if arguments.maximum_run_time is not None:
 		run_time_threshold = time.time() + arguments.maximum_run_time
@@ -327,6 +336,10 @@ if __name__ == "__main__":
 					count += 1
 					MediaRow.ensure(db, unicode(os.path.join(root, file), "utf-8"))
 		logging.info("found {count:,d} media files within root: {root}".format(count=count, root=root))
+	if arguments.prune:
+		for m in db.iterate_all():
+			if not os.path.isfile(m.path):
+				m.remove()
 
 	media_verification_count = 0
 	while True:
@@ -334,8 +347,7 @@ if __name__ == "__main__":
 			logging.info("maximum allowable run time ({maximum_run_time} seconds) has elapsed, exiting...".format(maximum_run_time=arguments.maximum_run_time))
 			break;
 
-		media_verification_count += 1
-		if (arguments.maximum_media_verifications is not None) and (media_verification_count > arguments.maximum_media_verifications):
+		if (arguments.maximum_media_verifications is not None) and (media_verification_count >= arguments.maximum_media_verifications):
 			logging.info("maximum allowable media verifications ({maximum_media_verifications}) have been executed, exiting...".format(maximum_media_verifications=arguments.maximum_media_verifications))
 			break;
 
@@ -348,9 +360,13 @@ if __name__ == "__main__":
 			logging.info("no pending media verifications to execute, exiting...")
 			break
 		if not os.path.isfile(m.path):
-			m.remove()
+			if arguments.prune:
+				m.remove()
+			else:
+				logging.warning("skipping media verification (file does not exist): {path}".format(path=m.path))
 		else:
-			logging.info("media verification #{media_verification_count} executing: {path}".format(media_verification_count=media_verification_count, path=m.path))
+			media_verification_count += 1
+			logging.info("verifying media: {path}".format(path=m.path))
 			m.size = os.stat(m.path).st_size
 			if (checksum_threshold is not None) and (m.size_updated or (m.checksum_timestamp is None) or (m.checksum_timestamp < checksum_threshold)):
 				m.checksum = checksum(m.path)
