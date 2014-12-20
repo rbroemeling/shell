@@ -6,6 +6,7 @@
 # added or when a previously correct media file is corrupted (by bad disk sectors, for example).
 #
 import argparse
+import datetime
 import fnmatch
 import logging
 import os
@@ -15,7 +16,7 @@ import subprocess
 import sys
 import time
 
-__version__ = "0.2.3"
+__version__ = "0.2.4"
 
 
 def checksum(path):
@@ -50,7 +51,7 @@ def transcode(path):
 def configure():
 	parser = argparse.ArgumentParser(description="Check all media files under the given directory for validity.")
 	parser.add_argument(
-		"-c", "--checksum-every",
+		"-c", "--checksum-interval",
 		default=14,
 		help="how often (in days) to validate media file checksums (default: %(default)s, set to 0 to disable checksum validation)",
 		metavar="DAYS",
@@ -61,6 +62,11 @@ def configure():
 		default="{home}/.media_check.sqlite".format(home=os.environ["HOME"]),
 		help="location of the SQLite database within which to store media state (default: %(default)s)",
 		metavar="DBPATH"
+	)
+	parser.add_argument(
+		"-D", "--divide-verification-evenly",
+		action="store_true",
+		help="verify a maximum of 1/<DAYS> of the media files per day (where DAYS is the checksum interval, default: verify all pending files)"
 	)
 	parser.add_argument(
 		"-m", "--media-glob",
@@ -113,7 +119,6 @@ def configure():
 		nargs="*"
 	)
 	arguments = parser.parse_args()
-	arguments.checksum_every *= 24 * 3600
 
 	loglevel = logging.WARNING
 	if arguments.verbose >= 1:
@@ -172,20 +177,26 @@ class MediaDB(object):
 		self.cnx.execute("CREATE TABLE IF NOT EXISTS media (checksum character(8), checksum_timestamp int, transcode_errors int, transcode_timestamp int, path text, size int)")
 		self.cnx.execute("CREATE UNIQUE INDEX IF NOT EXISTS media_path_idx ON media (path)")
 
-	def fetch_pending(self, checksum_threshold):
+	def fetch_pending(self, checksum_threshold, current_partition, partition_count):
 		cur = self.cnx.cursor()
 		cur.execute("SELECT ROWID, * FROM media WHERE size IS NULL LIMIT 1")
 		row = cur.fetchone()
 
 		if (row is None) and (checksum_threshold is not None):
-			cur.execute("SELECT ROWID, * FROM media WHERE (checksum_timestamp IS NULL) OR (checksum_timestamp < ?) ORDER BY checksum_timestamp ASC LIMIT 1", (checksum_threshold,))
-			row = cur.fetchone()
+			if current_partition is not None:
+				cur.execute("SELECT ROWID, * FROM media WHERE ((checksum_timestamp IS NULL) OR (checksum_timestamp < ?)) AND ((ROWID % ?) = ?) ORDER BY checksum_timestamp ASC LIMIT 1", (checksum_threshold,partition_count,current_partition,))
+				row = cur.fetchone()
+			else:
+				cur.execute("SELECT ROWID, * FROM media WHERE  (checksum_timestamp IS NULL) OR (checksum_timestamp < ?) ORDER BY checksum_timestamp ASC LIMIT 1", (checksum_threshold,))
+				row = cur.fetchone()
 
 		cur.close()
 		if row is None:
 			return None
 		else:
-			return MediaRow(self, row)
+			media = MediaRow(self, row)
+			logging.debug("pending media found: {media}".format(media=str(media)))
+			return media
 
 	def iterate_all(self):
 		for row in self.cnx.execute("SELECT ROWID, * FROM media ORDER BY path"):
@@ -350,6 +361,22 @@ if __name__ == "__main__":
 			if not os.path.isfile(m.path):
 				m.remove()
 
+	current_partition = None
+	checksum_threshold = None
+	if arguments.checksum_interval > 0:
+		if arguments.divide_verification_evenly:
+			# If we are attempting to divide our workload in order to distribute it more evenly,
+			# calculate which partition we are currently working on, using the number of days
+			# since the UNIX epoch as our counter.
+			current_partition = (datetime.datetime.today() - datetime.datetime.utcfromtimestamp(0)).days % arguments.checksum_interval
+			logging.info("partitioning media files evenly over the checksum interval: verifying partition {current_partition:,d} of {maximum_partition:,d}".format(current_partition=current_partition, maximum_partition=arguments.checksum_interval))
+			# We are partitioning the data, so calculate our checksum_threshold as 00:00 today (the further restriction of the current partition will
+			# stop us from verifying more media files than we mean to).
+			checksum_threshold = (datetime.datetime.combine(datetime.date.today(), datetime.time.min) - datetime.datetime.fromtimestamp(0)).total_seconds()
+		else:
+			# We are not partitioning the data, so just calculate the checksum_threshold as exactly arguments.checksum_interval days ago.
+			checksum_threshold = (datetime.datetime.now() - datetime.timedelta(days=arguments.checksum_interval) - datetime.datetime.fromtimestamp(0)).total_seconds()
+
 	# Loop over our 'pending' (i.e. ready to be verified) media files and verify them
 	# until either:
 	#   (1) there are no more pending media files.
@@ -365,11 +392,7 @@ if __name__ == "__main__":
 			logging.info("maximum allowable media verifications ({maximum_media_verifications}) have been executed, exiting...".format(maximum_media_verifications=arguments.maximum_media_verifications))
 			break;
 
-		if arguments.checksum_every > 0:
-			checksum_threshold = time.time() - arguments.checksum_every
-		else:
-			checksum_threshold = None
-		m = db.fetch_pending(checksum_threshold)
+		m = db.fetch_pending(checksum_threshold, current_partition, arguments.checksum_interval)
 		if m is None:
 			logging.info("no pending media verifications to execute, exiting...")
 			break
