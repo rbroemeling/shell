@@ -320,10 +320,15 @@ if __name__ == "__main__":
 		logging.error("no connection to database %s is available", arguments.database_path)
 		sys.exit(7)
 
+	# If we are just reporting the current state of the database, then print the requested
+	# report and immediately exit.
 	if arguments.report is not None:
 		for m in db.iterate_errored(arguments.report):
 			print u"{errors:>3d} {path}".format(errors=m.transcode_errors, path=m.path)
 		sys.exit(0)
+
+	# If a hard limit has been put on our execution time, calculate the time after which
+	# we need to exit.
 	if arguments.maximum_run_time is not None:
 		run_time_threshold = time.time() + arguments.maximum_run_time
 	else:
