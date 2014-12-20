@@ -132,7 +132,7 @@ class MediaDB(object):
 		self.path = path
 		self.connect()
 		if self.connected():
-			self.schema_ensure()
+			self.ensure_schema()
 
 	def commit(self):
 		self.cnx.commit()
@@ -159,6 +159,19 @@ class MediaDB(object):
 			self.cnx.close()
 			self.cnx = None
 
+	def ensure_row(self, path):
+		cur = self.cnx.cursor()
+		cur.execute("SELECT ROWID FROM media WHERE path = ?", (path,))
+		row = cur.fetchone()
+		if row is None:
+			m = MediaRow(self)
+			m.path = path
+			m.save()
+
+	def ensure_schema(self):
+		self.cnx.execute("CREATE TABLE IF NOT EXISTS media (checksum character(8), checksum_timestamp int, transcode_errors int, transcode_timestamp int, path text, size int)")
+		self.cnx.execute("CREATE UNIQUE INDEX IF NOT EXISTS media_path_idx ON media (path)")
+
 	def fetch_pending(self, checksum_threshold):
 		cur = self.cnx.cursor()
 		cur.execute("SELECT ROWID, * FROM media WHERE size IS NULL LIMIT 1")
@@ -182,22 +195,8 @@ class MediaDB(object):
 		for row in self.cnx.execute("SELECT ROWID, * FROM media WHERE transcode_errors >= ? ORDER BY path", (error_threshold,)):
 			yield MediaRow(self, row)
 
-	def schema_ensure(self):
-		self.cnx.execute("CREATE TABLE IF NOT EXISTS media (checksum character(8), checksum_timestamp int, transcode_errors int, transcode_timestamp int, path text, size int)")
-		self.cnx.execute("CREATE UNIQUE INDEX IF NOT EXISTS media_path_idx ON media (path)")
-
 
 class MediaRow(object):
-	@classmethod
-	def ensure(self, db, path):
-		cur = db.cnx.cursor()
-		cur.execute("SELECT ROWID FROM media WHERE path = ?", (path,))
-		row = cur.fetchone()
-		if row is None:
-			m = MediaRow(db)
-			m.path = path
-			m.save()
-
 	def __init__(self, db, row=None):
 		self.db = db
 		self.cur = db.cnx.cursor()
@@ -337,7 +336,7 @@ if __name__ == "__main__":
 			for glob in arguments.media_glob:
 				for file in fnmatch.filter(files, glob):
 					count += 1
-					MediaRow.ensure(db, unicode(os.path.join(root, file), "utf-8"))
+					db.ensure_row(unicode(os.path.join(root, file), "utf-8"))
 		logging.info("found {count:,d} media files within root: {root}".format(count=count, root=root))
 
 	# If pruning is enabled, remove all rows from the database that don't exist on disk.
