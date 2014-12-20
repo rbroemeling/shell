@@ -14,6 +14,7 @@ else
   HOST=""
 fi
 LOCATION="${1#*:}"
+LOCATION="${LOCATION%/}"
 
 if [ -n "${HOST}" ]; then
   rsync -rlptv --rsh="ssh" . "${HOST}:${LOCATION}/.environment-install"
