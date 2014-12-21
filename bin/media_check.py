@@ -16,7 +16,7 @@ import subprocess
 import sys
 import time
 
-__version__ = "0.2.4"
+__version__ = "0.2.5"
 
 
 def checksum(path):
@@ -126,7 +126,7 @@ def configure():
 	if arguments.verbose >= 2:
 		loglevel = logging.DEBUG
 	logging.basicConfig(datefmt="%d %b %Y %H:%M:%S", format="%(asctime)s %(levelname)-8s %(message)s", level=loglevel)
-	logging.debug("arguments: %s", str(arguments))
+	logging.debug("arguments: %s", unicode(arguments))
 
 	return arguments
 
@@ -272,10 +272,10 @@ class MediaRow(object):
 			self.size_updated = False
 		if self.size_updated and (original_size is not None):
 			if original_size is not None:
-				original_size = u"{original_size:,d}".format(original_size=original_size)
+				original_size = "{original_size:,d}".format(original_size=original_size)
 			new_size = self._size
 			if new_size is not None:
-				new_size = u"{new_size:,d}".format(new_size=new_size)
+				new_size = "{new_size:,d}".format(new_size=new_size)
 			logging.log(logging_level, u"size({path}): {original_size} => {new_size}".format(new_size=new_size, original_size=original_size, path=self.path))
 
 	@property
@@ -299,10 +299,10 @@ class MediaRow(object):
 			self.transcode_errors_updated = False
 		if self.transcode_errors_updated and (original_transcode_errors is not None):
 			if original_transcode_errors is not None:
-				original_transcode_errors = u"{original_transcode_errors:,d}".format(original_transcode_errors=original_transcode_errors)
+				original_transcode_errors = "{original_transcode_errors:,d}".format(original_transcode_errors=original_transcode_errors)
 			new_transcode_errors = self._transcode_errors
 			if new_transcode_errors is not None:
-				new_transcode_errors = u"{new_transcode_errors:,d}".format(new_transcode_errors=new_transcode_errors)
+				new_transcode_errors = "{new_transcode_errors:,d}".format(new_transcode_errors=new_transcode_errors)
 			logging.log(logging_level, u"transcode errors({path}): {original_transcode_errors} => {new_transcode_errors}".format(new_transcode_errors=new_transcode_errors, original_transcode_errors=original_transcode_errors, path=self.path))
 
 	def load(self, row):
@@ -400,10 +400,10 @@ if __name__ == "__main__":
 			if arguments.prune:
 				m.remove()
 			else:
-				logging.warning("skipping media verification (file does not exist): {path}".format(path=m.path))
+				logging.warning(u"skipping media verification (file does not exist): {path}".format(path=m.path))
 		else:
 			media_verification_count += 1
-			logging.info("verifying media: {path}".format(path=m.path))
+			logging.info(u"verifying media: {path}".format(path=m.path))
 			m.size = os.stat(m.path).st_size
 			if (checksum_threshold is not None) and (m.size_updated or (m.checksum_timestamp is None) or (m.checksum_timestamp < checksum_threshold)):
 				m.checksum = checksum(m.path)
