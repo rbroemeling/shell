@@ -3,7 +3,7 @@
 --type-add=markdown:ext:md,mmd,markdown
 --type-add=puppet:ext:pp
 --type-add=ruby:is:Gemfiles
---type-add=ruby:ext:gemspec,ru
+--type-add=ruby:ext:cap,gemspec,ru
 
 --color-filename=blue
 --color-lineno=cyan
