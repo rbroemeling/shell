@@ -16,7 +16,7 @@ import subprocess
 import sys
 import time
 
-__version__ = "0.2.5"
+__version__ = "0.2.6"
 
 
 def checksum(path):
@@ -219,7 +219,13 @@ class MediaRow(object):
 		return unicode(self).encode("utf-8")
 
 	def __unicode__(self):
-		return u"< MediaRow #{self.id:d}   {self.size:>13,d} bytes   0x{self.checksum:8s}   {self.transcode_errors:>3d} err   {self.path} >".format(self=self)
+		return u"MediaRow #{id:<6d} [bytes => {size:>13s}] [checksum => {checksum:8s}] [errors => {transcode_errors:>3s}] {path}".format(
+			checksum=self.safe_format(self.checksum, '8s', ''),
+			id=self.id,
+			path=self.path,
+			size=self.safe_format(self.size, '13,d', ''),
+			transcode_errors=self.safe_format(self.transcode_errors, '3d', '')
+		)
 
 	def clear(self):
 		self.id = None
@@ -251,7 +257,17 @@ class MediaRow(object):
 		else:
 			self.checksum_updated = False
 		if self.checksum_updated and (original_checksum is not None):
-			logging.log(logging_level, u"checksum({path}): {original_checksum} => {new_checksum}".format(new_checksum=self._checksum, original_checksum=original_checksum, path=self.path))
+			logentry = u"checksum({path}): {original_checksum} => {checksum}".format(
+				checksum=self._checksum,
+				original_checksum=original_checksum,
+				path=self.path
+			)
+			logging.log(logging_level, logentry)
+
+	def safe_format(self, val, fmt, none_repr='None'):
+		if val is None:
+			return none_repr
+		return "{val:{fmt}}".format(fmt=fmt, val=val)
 
 	@property
 	def size(self):
@@ -271,12 +287,12 @@ class MediaRow(object):
 		else:
 			self.size_updated = False
 		if self.size_updated and (original_size is not None):
-			if original_size is not None:
-				original_size = "{original_size:,d}".format(original_size=original_size)
-			new_size = self._size
-			if new_size is not None:
-				new_size = "{new_size:,d}".format(new_size=new_size)
-			logging.log(logging_level, u"size({path}): {original_size} => {new_size}".format(new_size=new_size, original_size=original_size, path=self.path))
+			logentry = u"size({path}): {original_size} => {size}".format(
+				size=self.safe_format(self._size, ',d'),
+				original_size=self.safe_format(original_size, ',d'),
+				path=self.path
+			)
+			logging.log(logging_level, logentry)
 
 	@property
 	def transcode_errors(self):
@@ -298,12 +314,12 @@ class MediaRow(object):
 				logging_level = logging.WARNING
 			self.transcode_errors_updated = False
 		if self.transcode_errors_updated and (original_transcode_errors is not None):
-			if original_transcode_errors is not None:
-				original_transcode_errors = "{original_transcode_errors:,d}".format(original_transcode_errors=original_transcode_errors)
-			new_transcode_errors = self._transcode_errors
-			if new_transcode_errors is not None:
-				new_transcode_errors = "{new_transcode_errors:,d}".format(new_transcode_errors=new_transcode_errors)
-			logging.log(logging_level, u"transcode errors({path}): {original_transcode_errors} => {new_transcode_errors}".format(new_transcode_errors=new_transcode_errors, original_transcode_errors=original_transcode_errors, path=self.path))
+			logentry = u"transcode errors({path}): {original_transcode_errors} => {transcode_errors}".format(
+				transcode_errors=self.safe_format(self._transcode_errors, ',d'),
+				original_transcode_errors=self.safe_format(original_transcode_errors, ',d'),
+				path=self.path
+			)
+			logging.log(logging_level, logentry)
 
 	def load(self, row):
 		(self.id, self.checksum, self.checksum_timestamp, self.transcode_errors, self.transcode_timestamp, self.path, self.size) = row
