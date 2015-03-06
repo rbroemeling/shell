@@ -2,8 +2,8 @@
 --type-add=html:ext:haml
 --type-add=markdown:ext:md,mmd,markdown
 --type-add=puppet:ext:pp
---type-add=ruby:is:Gemfiles
---type-add=ruby:ext:cap,gemspec,rake,ru
+--type-add=ruby:is:Gemfile
+--type-add=ruby:ext:cap,gemspec,ru
 
 --color-filename=blue
 --color-lineno=cyan
