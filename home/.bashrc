@@ -67,6 +67,21 @@ if [ -n "${PS1}" ]; then
   alias ll='ls -l'
   alias lla='ls -la'
 
+  # openssl convenience functions
+  function ssl_cat
+  {
+    if fgrep --regexp='-----BEGIN CERTIFICATE-----' "${1}" >/dev/null 2>/dev/null; then
+      openssl x509 -in "${1}" -text -noout
+    elif fgrep --regexp='-----BEGIN CERTIFICATE REQUEST-----' "${1}" >/dev/null 2>/dev/null; then
+      openssl req -text -noout -verify -in "${1}"
+    elif fgrep --regexp='-----BEGIN PRIVATE KEY-----' "${1}" >/dev/null 2>/dev/null; then
+      openssl rsa -in "${1}" -check
+    else
+      echo "ssl_cat: ${1} is not a recognized openssl file." >&2
+      return 1
+    fi
+  }
+
   # filesystem mark/jump functions, slightly modified from those by jeroen janssens at
   #  http://jeroenjanssens.com/2013/08/16/quickly-navigate-your-filesystem-from-the-command-line.html
   export MARK_ROOT="${HOME}/.marks"
