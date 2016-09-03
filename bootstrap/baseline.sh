@@ -59,33 +59,28 @@ fi
 apt-get update
 apt-get upgrade -y
 
-#
-# Install Postfix.
-#
-hostname --fqdn >/etc/mailname
+# Install/configure Postfix.
 mkdir -p /etc/postfix
-cat > /etc/postfix/main.cf <<__EOF__
+cat >/etc/postfix/main.cf <<__EOF__
 # See /usr/share/postfix/main.cf.dist for a commented, more complete version
-
 append_dot_mydomain = no
 biff = no
 inet_interfaces = loopback-only
-mailbox_command = procmail -a "\$EXTENSION"
 mailbox_size_limit = 0
-mydestination = \$myhostname, localhost.\$mydomain, localhost
-mydomain = $(hostname --domain)
 mynetworks_style = host
-myorigin = /etc/mailname
 readme_directory = no
-#relayhost = A.B.C.D:smtp
 recipient_delimiter = +
-smtpd_banner = \$myhostname ESMTP \$mail_name (Debian/GNU)
+#relayhost = A.B.C.D:smtp
+smtp_tls_session_cache_database = btree:\${data_directory}/smtp_scache
+smtpd_banner = \${myhostname} ESMTP \${mail_name} (Debian/GNU)
+smtpd_tls_cert_file = /etc/ssl/certs/ssl-cert-snakeoil.pem
+smtpd_tls_key_file = /etc/ssl/private/ssl-cert-snakeoil.key
+smtpd_tls_session_cache_database = btree:\${data_directory}/smtpd_scache
+smtpd_use_tls=yes
 __EOF__
-aptitude install -y postfix
+apt-get install -y postfix
 
-#
 # Install utilities and applications.
-#
 aptitude install -y \
   curl libcurl4-openssl-dev \
   debconf-utils \
