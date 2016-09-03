@@ -16,6 +16,7 @@
 set -euo pipefail
 . /etc/os-release
 CODENAME="${VERSION//[^a-z]/}"
+export DEBIAN_FRONTEND=noninteractive
 
 # Set flags about what type of system we are building on.
 VMWARE="FALSE"
