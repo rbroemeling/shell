@@ -13,10 +13,10 @@
 # To setup an unprivileged user at the same time:
 #  wget -q -O - https://raw.github.com/rbroemeling/shell/master/bootstrap/baseline.sh | sudo env UNPRIVILEGED_USER=<username> bash
 #
+. /etc/os-release
+CODENAME="${VERSION//[^a-z]/}"
 
-#
 # Set flags about what type of system we are building on.
-#
 VMWARE="FALSE"
 if dmesg | grep 'VMware Virtual' >/dev/null 2>&1; then
   VMWARE="TRUE"
@@ -27,34 +27,36 @@ if dpkg -l xinit >/dev/null 2>&1; then
   X11="TRUE"
 fi
 
-#
 # Configure APT.
-#
 echo 'APT::Install-Recommends "false";' > /etc/apt/apt.conf.d/99recommends
 echo 'APT::Install-Suggests "false";' > /etc/apt/apt.conf.d/99suggests
-echo '# APT sources are kept in /etc/apt/sources.list.d/*.list' >/etc/apt/sources.list
-cat >/etc/apt/sources.list.d/debian.list <<EOF
+# cloud-init automatically configures APT sources (that we want to leave alone). If cloud-init is not present, configure
+# our APT sources in a reasonable way.
+if !dpkg -l cloud-init >/dev/null 2>&1; then
+	echo '# APT sources are kept in /etc/apt/sources.list.d/*.list' >/etc/apt/sources.list
+	cat >/etc/apt/sources.list.d/debian.list <<EOF
 # debian
-deb http://ftp.ca.debian.org/debian/ wheezy main contrib non-free
-deb-src http://ftp.ca.debian.org/debian/ wheezy main contrib non-free
+deb http://httpredir.debian.org/debian ${CODENAME} main contrib non-free
+deb-src http://httpredir.debian.org/debian ${CODENAME} main contrib non-free
 EOF
-cat >/etc/apt/sources.list.d/debian-security.list <<EOF
+	cat >/etc/apt/sources.list.d/debian-security.list <<EOF
 # debian-security
-deb http://security.debian.org/ wheezy/updates main contrib non-free
-deb-src http://security.debian.org/ wheezy/updates main contrib non-free
+deb http://security.debian.org/ ${CODENAME}/updates main contrib non-free
+deb-src http://security.debian.org/ ${CODENAME}/updates main contrib non-free
 EOF
-cat >/etc/apt/sources.list.d/debian-backports.list <<EOF
-# debian-backports
-deb http://ftp.ca.debian.org/debian/ wheezy-backports main contrib non-free
-deb-src http://ftp.ca.debian.org/debian/ wheezy-backports main contrib non-free
-EOF
-cat >/etc/apt/sources.list.d/debian-updates.list <<EOF
+	cat >/etc/apt/sources.list.d/debian-updates.list <<EOF
 # debian-updates
-deb http://ftp.ca.debian.org/debian/ wheezy-updates main contrib non-free
-deb-src http://ftp.ca.debian.org/debian/ wheezy-updates main contrib non-free
+deb http://httpredir.debian.org/debian ${CODENAME}-updates main contrib non-free
+deb-src http://httpredir.debian.org/debian ${CODENAME}-updates main contrib non-free
 EOF
-aptitude update
-aptitude safe-upgrade -y
+	cat >/etc/apt/sources.list.d/debian-backports.list <<EOF
+# debian-backports
+deb http://httpredir.debian.org/debian ${CODENAME}-backports main contrib non-free
+deb-src http://httpredir.debian.org/debian ${CODENAME}-backports main contrib non-free
+EOF
+fi
+apt-get update
+apt-get upgrade -y
 
 #
 # Install Postfix.
