@@ -89,11 +89,13 @@ apt-get install -y \
   fping \
   ifstat \
   iftop \
+  iptables-persistent \
   iputils-ping \
   iputils-tracepath \
   keychain \
   lrzsz \
   mtr-tiny \
+  nano \
   nmap \
   openssh-server \
   pv \
@@ -105,6 +107,11 @@ apt-get install -y \
   tcpdump \
   unzip \
   zip
+if [ "${X11}" == "TRUE" ]; then
+  apt-get install -y emacs vim-gtk
+else
+  apt-get install -y emacs-nox vim
+fi
 
 # Install development tools and utilities.
 apt-get install -y \
@@ -119,13 +126,8 @@ apt-get install -y \
   flex \
   gdb \
   git \
-  nano \
   subversion
-if [ "${X11}" == "TRUE" ]; then
-  apt-get install -y emacs vim-gtk
-else
-  apt-get install -y emacs-nox vim
-fi
+
 
 # Install Stow
 #
