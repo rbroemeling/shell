@@ -81,7 +81,7 @@ __EOF__
 apt-get install -y postfix
 
 # Install utilities and applications.
-aptitude install -y \
+apt-get install -y \
   curl libcurl4-openssl-dev \
   debconf-utils \
   dstat \
@@ -105,13 +105,9 @@ aptitude install -y \
   unzip \
   zip
 
-#
 # Install development tools and utilities.
-#
-aptitude install -y \
+apt-get install -y \
   ack-grep \
-  git \
-  subversion \
   autoconf \
   automake \
   bison \
@@ -120,68 +116,46 @@ aptitude install -y \
   devscripts \
   dpatch \
   flex \
-  gdb
-
-#
-# Install a collection of text editors that should satisfy almost everyone.
-#
-aptitude install -y nano
+  gdb \
+  git \
+  nano \
+  subversion
 if [ "${X11}" == "TRUE" ]; then
-  aptitude install -y emacs23 vim-gtk
+  apt-get install -y emacs vim-gtk
 else
-  aptitude install -y emacs23-nox vim
+  apt-get install -y emacs-nox vim
 fi
 
-#
 # Install Stow
 #
 # We need to remove the /usr/local/man symlink and create a directory in it's place
 # in order to prevent conflicts when stowing applications.
-#
-aptitude install -y stow
+apt-get install -y stow
 if [ -h /usr/local/man ]; then
   rm /usr/local/man
 fi
 install --directory --group=staff --mode=2775 --owner=root /usr/local/man
 
-#
 # Install and enable/configure tmpreaper.
-#
 sed -ie 's/^#TMPTIME=.*$/TMPTIME=7/' /etc/default/rcS
-aptitude install -y tmpreaper
+apt-get install -y tmpreaper
 sed -ie 's/^SHOWWARNING/#SHOWWARNING/' /etc/tmpreaper.conf
 
-#
 # Install VMWare tools, if we are on a VMWare instance.
-#
 if [ "${VMWARE}" == "TRUE" ]; then
-  aptitude -y install open-vm-dkms
+  apt-get install -y open-vm-dkms
   if [ "${X11}" == "TRUE" ]; then
-    aptitude -y install open-vm-toolbox
+    apt-get install -y open-vm-toolbox
   fi
 fi
 
-#
-# Disable unnecessary/unused TTYs.
-#
-sed -ie 's/^\(.* tty[3456]\)$/#\1/g' /etc/inittab
-/sbin/telinit q
-
-#
 # Remove pacakges that generally we do not want nor need.
-#
-aptitude remove -y \
+apt-get purge -y \
   nfs-common \
   rpcbind
 
-#
-# Purge any 'removed' packages.
-#
-aptitude purge -y '~c'
 
-#
 # Install some utility scripts, and our user environment if necessary.
-#
 cd /tmp
 git clone git://github.com/rbroemeling/shell.git
 install shell/bin/aliases_update.sh /etc/cron.daily/aliases
