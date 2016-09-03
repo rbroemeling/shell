@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 #
 # Install a default set of useful packages and configure them reasonably.
 # Note that these selections assume an already-existing basic (minimal,
@@ -13,6 +13,7 @@
 # To setup an unprivileged user at the same time:
 #  wget -q -O - https://raw.github.com/rbroemeling/shell/master/bootstrap/baseline.sh | sudo env UNPRIVILEGED_USER=<username> bash
 #
+set -euo pipefail
 . /etc/os-release
 CODENAME="${VERSION//[^a-z]/}"
 
