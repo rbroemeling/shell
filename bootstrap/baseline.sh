@@ -108,9 +108,9 @@ apt-get install -y \
   unzip \
   zip
 if [ "${X11}" == "TRUE" ]; then
-  apt-get install -y emacs vim-gtk
+  apt-get install -y emacs23 vim-gtk
 else
-  apt-get install -y emacs-nox vim
+  apt-get install -y emacs23-nox vim
 fi
 
 # Install development tools and utilities.
@@ -152,11 +152,10 @@ if [ "${VMWARE}" == "TRUE" ]; then
   fi
 fi
 
-# Remove pacakges that generally we do not want nor need.
+# Remove packages that generally we do not want nor need.
 apt-get purge -y \
   nfs-common \
   rpcbind
-
 
 # Install some utility scripts, and our user environment if necessary.
 cd /tmp
