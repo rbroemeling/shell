@@ -34,29 +34,30 @@ echo 'APT::Install-Recommends "false";' > /etc/apt/apt.conf.d/99recommends
 echo 'APT::Install-Suggests "false";' > /etc/apt/apt.conf.d/99suggests
 # cloud-init automatically configures APT sources (that we want to leave alone). If cloud-init is not present, configure
 # our APT sources in a reasonable way.
-if !dpkg -l cloud-init >/dev/null 2>&1; then
-	echo '# APT sources are kept in /etc/apt/sources.list.d/*.list' >/etc/apt/sources.list
-	cat >/etc/apt/sources.list.d/debian.list <<EOF
+if ! dpkg -l cloud-init >/dev/null 2>&1; then
+  echo '# APT sources are kept in /etc/apt/sources.list.d/*.list' >/etc/apt/sources.list
+  cat >/etc/apt/sources.list.d/debian.list <<EOF
 # debian
 deb http://httpredir.debian.org/debian ${CODENAME} main contrib non-free
 deb-src http://httpredir.debian.org/debian ${CODENAME} main contrib non-free
 EOF
-	cat >/etc/apt/sources.list.d/debian-security.list <<EOF
+  cat >/etc/apt/sources.list.d/debian-security.list <<EOF
 # debian-security
 deb http://security.debian.org/ ${CODENAME}/updates main contrib non-free
 deb-src http://security.debian.org/ ${CODENAME}/updates main contrib non-free
 EOF
-	cat >/etc/apt/sources.list.d/debian-updates.list <<EOF
+  cat >/etc/apt/sources.list.d/debian-updates.list <<EOF
 # debian-updates
 deb http://httpredir.debian.org/debian ${CODENAME}-updates main contrib non-free
 deb-src http://httpredir.debian.org/debian ${CODENAME}-updates main contrib non-free
 EOF
-	cat >/etc/apt/sources.list.d/debian-backports.list <<EOF
+  cat >/etc/apt/sources.list.d/debian-backports.list <<EOF
 # debian-backports
 deb http://httpredir.debian.org/debian ${CODENAME}-backports main contrib non-free
 deb-src http://httpredir.debian.org/debian ${CODENAME}-backports main contrib non-free
 EOF
 fi
+rm -f /etc/apt/sources.list~
 apt-get update
 apt-get upgrade -y
 
