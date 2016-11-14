@@ -127,6 +127,7 @@ apt-get install -y \
   flex \
   gdb \
   git \
+  linux-headers-amd64 \
   subversion
 
 
