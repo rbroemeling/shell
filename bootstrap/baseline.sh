@@ -61,6 +61,14 @@ rm -f /etc/apt/sources.list~
 apt-get update
 apt-get upgrade -y
 
+# Configure GRUB
+sed -e '
+  s/GRUB_TIMEOUT=.*/GRUB_TIMEOUT=2/;
+  s/#\?GRUB_GFXMODE=.*/GRUB_GFXMODE=1280x720x32/;
+  /GRUB_GFXMODE=.*/ a GRUB_GFXPAYLOAD_LINUX=1280x720
+' -i /etc/default/grub
+update-grub
+
 # Install/configure Postfix.
 mkdir -p /etc/postfix
 cat >/etc/postfix/main.cf <<__EOF__
@@ -129,7 +137,6 @@ apt-get install -y \
   git \
   linux-headers-amd64 \
   subversion
-
 
 # Install Stow
 #
