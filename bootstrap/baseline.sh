@@ -106,6 +106,7 @@ apt-get install -y \
   mtr-tiny \
   nano \
   nmap \
+  ntp \
   openssh-server \
   pv \
   realpath \
