@@ -176,7 +176,7 @@ if [ -n "${UNPRIVILEGED_USER}" ]; then
   usermod -a -G staff "${UNPRIVILEGED_USER}"
   usermod -a -G sudo "${UNPRIVILEGED_USER}"
   usermod -a -G users "${UNPRIVILEGED_USER}"
-  sed -ie 's/# $1 == "root".*/$1 == "root" { destination = "'"$UNPRIVILEGED_USER"'" }/' /etc/cron.daily/aliases
+  sed -e 's/# $1 == "root".*/$1 == "root" { destination = "'"$UNPRIVILEGED_USER"'" }/' -i /etc/cron.daily/aliases
   cd shell/home
   sudo -u "${UNPRIVILEGED_USER}" ./install.sh "/home/${UNPRIVILEGED_USER}"
   cd ../..
