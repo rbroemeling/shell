@@ -158,7 +158,7 @@ sed -ie 's/^SHOWWARNING/#SHOWWARNING/' /etc/tmpreaper.conf
 
 # Install VMWare tools, if we are on a VMWare instance.
 if [ "${VMWARE}" == "TRUE" ]; then
-  apt-get install -y open-vm-dkms
+  apt-get install -y open-vm-dkms open-vm-tools
   if [ "${X11}" == "TRUE" ]; then
     apt-get install -y open-vm-toolbox
   fi
