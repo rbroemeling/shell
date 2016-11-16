@@ -18,6 +18,12 @@ set -euo pipefail
 CODENAME="${VERSION//[^a-z]/}"
 export DEBIAN_FRONTEND=noninteractive
 
+# Set flags about what type of system we are building on.
+VMWARE="FALSE"
+if dmesg | grep 'VMware Virtual' >/dev/null 2>&1; then
+  VMWARE="TRUE"
+fi
+
 X11="FALSE"
 if dpkg -l xinit >/dev/null 2>&1; then
   X11="TRUE"
@@ -126,9 +132,7 @@ apt-get install -y \
   build-essential \
   debhelper \
   devscripts \
-  dkms \
   dpatch \
-  fakeroot \
   flex \
   gdb \
   git \
@@ -149,6 +153,14 @@ install --directory --group=staff --mode=2775 --owner=root /usr/local/man
 sed -ie 's/^#TMPTIME=.*$/TMPTIME=7/' /etc/default/rcS
 apt-get install -y tmpreaper
 sed -ie 's/^SHOWWARNING/#SHOWWARNING/' /etc/tmpreaper.conf
+
+# Install VMWare tools, if we are on a VMWare instance.
+if [ "${VMWARE}" == "TRUE" ]; then
+  apt-get install -y open-vm-dkms
+  if [ "${X11}" == "TRUE" ]; then
+    apt-get install -y open-vm-toolbox
+  fi
+fi
 
 # Remove packages that generally we do not want nor need.
 apt-get purge -y \
