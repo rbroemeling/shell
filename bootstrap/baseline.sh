@@ -132,7 +132,9 @@ apt-get install -y \
   build-essential \
   debhelper \
   devscripts \
+  dkms \
   dpatch \
+  fakeroot \
   flex \
   gdb \
   git \
