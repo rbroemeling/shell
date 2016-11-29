@@ -125,7 +125,6 @@ fi
 
 # Install development tools and utilities.
 apt-get install -y \
-  ack-grep \
   autoconf \
   automake \
   bison \

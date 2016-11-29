@@ -32,4 +32,11 @@ else
       install -D --backup --mode=0644 --preserve-timestamps --verbose "${F}" "${LOCATION}/${F}"
     fi
   done
+
+if [[ ! -e "${LOCATION}/.bin" ]]; then
+  mkdir "${LOCATION}/.bin"
+fi
+if [[ ! -e "${LOCATION}/.bin/ack" || "$("${LOCATION}/.bin/ack" --version | head --lines 1)" != "ack 2.14" ]]; then
+  curl http://beyondgrep.com/ack-2.14-single-file >"${LOCATION}/.bin/ack"
+  chmod 0755 "${LOCATION}/.bin/ack"
 fi
