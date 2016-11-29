@@ -96,6 +96,7 @@ apt-get install -y \
   debconf-utils \
   dstat \
   fping \
+  gnupg2 \
   ifstat \
   iftop \
   iptables-persistent \
