@@ -1,10 +1,11 @@
-#!/bin/bash -e
+#!/bin/bash
 #
 # A simple script to install the environment files on a given host (or in a given location).
 #
+set -euo pipefail
 
-if [ -z "${1}" ]; then
-  echo "Usage: ${0} DEST" >&2
+if [[ -z "${1}" ]]; then
+  echo "Usage: ${0} HOME_DIR" >&2
   exit -1
 fi
 
@@ -16,7 +17,7 @@ fi
 LOCATION="${1#*:}"
 LOCATION="${LOCATION%/}"
 
-if [ -n "${HOST}" ]; then
+if [[ -n "${HOST}" ]]; then
   rsync -rlptv --rsh="ssh" . "${HOST}:${LOCATION}/.environment-install"
   echo "
     cd '${LOCATION}/.environment-install'
@@ -24,14 +25,27 @@ if [ -n "${HOST}" ]; then
     cd '${LOCATION}'
     rm -rv '${LOCATION}/.environment-install'
   " | ssh "${HOST}" bash
-else
-  find . -type f | while read F; do
-    F="${F:2}"
-    [ "${F}" = "install.sh" ] && continue
-    if ! diff -q -N "${F}" "${LOCATION}/${F}" >/dev/null 2>&1; then
-      install -D --backup --mode=0644 --preserve-timestamps --verbose "${F}" "${LOCATION}/${F}"
+  exit
+fi
+
+for F in * .*; do
+  [[ ! -f "${F}" ]] && continue
+  [[ "${F}" == 'install.sh' ]] && continue
+  if ! diff --brief --new-file "${LOCATION}/${F}" "${F}" >/dev/null 2>&1; then
+    if [[ -e "${LOCATION}/${F}" ]]; then
+      diff --unified "${LOCATION}/${F}" "${F}" || true
+      read -N 1 -p 'Apply this change? [Y/n] ' -s
+      echo
+      if [[ ! "${REPLY}" =~ ^[Yy]{0,1}$ ]]; then
+        continue
+      fi
     fi
-  done
+    install -D --backup --mode=0644 --preserve-timestamps --verbose "${F}" "${LOCATION}/${F}"
+    if [[ -e "${LOCATION}/${F}~" ]]; then
+      install -D --mode=0640 --preserve-timestamps --verbose "${LOCATION}/${F}~" "/tmp/${LOCATION////-}-${F}~"
+    fi
+  fi
+done
 
 if [[ ! -e "${LOCATION}/.bin" ]]; then
   mkdir "${LOCATION}/.bin"
