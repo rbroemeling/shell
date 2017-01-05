@@ -131,6 +131,12 @@ Set-ItemProperty -Path "HKCU:\Control Panel\Accessibility\StickyKeys" -Name "Fla
 $servicemanager = New-Object -ComObject Microsoft.Update.ServiceManager -Strict
 $servicemanager.AddService2("7971f918-a847-4430-9279-4a52d1efe18d",7,"")
 
+# Disable SMBv2 and SMBv3 for the SMB client, requiring it to use SMB v1 in order to increase compatibility with SAMBA.
+# Ref: https://lists.samba.org/archive/samba/2015-September/193886.html
+# Ref: https://support.microsoft.com/en-us/kb/2696547
+sc.exe config lanmanworkstation depend= bowser/mrxsmb10/nsi
+sc.exe config mrxsmb20 start= disabled
+
 # Uninstall unwanted default applications
 Get-AppxPackage "4DF9E0F8.Netflix" | Remove-AppxPackage
 Get-AppxPackage "9E2F88E3.Twitter" | Remove-AppxPackage
