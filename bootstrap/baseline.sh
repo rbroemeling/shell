@@ -92,6 +92,7 @@ apt-get install -y postfix
 
 # Install utilities and applications.
 apt-get install -y \
+  apt-transport-https \
   curl libcurl4-openssl-dev \
   debconf-utils \
   dstat \
