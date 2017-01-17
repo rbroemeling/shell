@@ -167,7 +167,11 @@ fi
 
 # Remove packages that generally we do not want nor need.
 apt-get purge -y \
+  eject \
+  mutt \
   nfs-common \
+  os-prober \
+  procmail \
   rpcbind
 
 # Install some utility scripts, and our user environment if necessary.
