@@ -178,7 +178,7 @@ apt-get purge -y \
 cd /tmp
 git clone git://github.com/rbroemeling/shell.git
 install shell/bin/aliases_update.sh /etc/cron.daily/aliases
-if [ -n "${UNPRIVILEGED_USER}" ]; then
+if [ -n "${UNPRIVILEGED_USER:-}" ]; then
   usermod -a -G adm "${UNPRIVILEGED_USER}"
   usermod -a -G staff "${UNPRIVILEGED_USER}"
   usermod -a -G sudo "${UNPRIVILEGED_USER}"
