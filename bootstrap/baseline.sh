@@ -139,6 +139,7 @@ apt-get install -y \
   flex \
   gdb \
   git \
+  libreadline-dev \
   linux-headers-amd64 \
   subversion
 
