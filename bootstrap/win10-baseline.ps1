@@ -137,42 +137,32 @@ $servicemanager.AddService2("7971f918-a847-4430-9279-4a52d1efe18d",7,"")
 sc.exe config lanmanworkstation depend= bowser/mrxsmb10/nsi
 sc.exe config mrxsmb20 start= disabled
 
-# Uninstall unwanted default applications
-Get-AppxPackage "4DF9E0F8.Netflix" | Remove-AppxPackage
-Get-AppxPackage "9E2F88E3.Twitter" | Remove-AppxPackage
-Get-AppxPackage "Drawboard.DrawboardPDF" | Remove-AppxPackage
-Get-AppxPackage "king.com.CandyCrushSodaSaga" | Remove-AppxPackage
-Get-AppxPackage "king.com.ParadiseBay" | Remove-AppxPackage
-Get-AppxPackage "Microsoft.3DBuilder" | Remove-AppxPackage
-Get-AppxPackage "Microsoft.AppConnector" | Remove-AppxPackage
-Get-AppxPackage "Microsoft.BingFinance" | Remove-AppxPackage
-Get-AppxPackage "Microsoft.BingNews" | Remove-AppxPackage
-Get-AppxPackage "Microsoft.BingSports" | Remove-AppxPackage
-Get-AppxPackage "Microsoft.BingWeather" | Remove-AppxPackage
-Get-AppxPackage "Microsoft.CommsPhone" | Remove-AppxPackage
-Get-AppxPackage "Microsoft.ConnectivityStore" | Remove-AppxPackage
-Get-AppxPackage "Microsoft.Getstarted" | Remove-AppxPackage
-Get-AppxPackage "Microsoft.Messaging" | Remove-AppxPackage
-Get-AppxPackage "Microsoft.MicrosoftOfficeHub" | Remove-AppxPackage
-Get-AppxPackage "Microsoft.MicrosoftSolitaireCollection" | Remove-AppxPackage
-Get-AppxPackage "Microsoft.MicrosoftStickyNotes" | Remove-AppxPackage
-Get-AppxPackage "Microsoft.MinecraftUWP" | Remove-AppxPackage
-Get-AppxPackage "Microsoft.Office.OneNote" | Remove-AppxPackage
-Get-AppxPackage "Microsoft.Office.Sway" | Remove-AppxPackage
-Get-AppxPackage "Microsoft.OneConnect" | Remove-AppxPackage
-Get-AppxPackage "Microsoft.People" | Remove-AppxPackage
-Get-AppxPackage "Microsoft.SkypeApp" | Remove-AppxPackage
-Get-AppxPackage "Microsoft.WindowsAlarms" | Remove-AppxPackage
-Get-AppxPackage "Microsoft.WindowsCalculator" | Remove-AppxPackage
-Get-AppxPackage "Microsoft.WindowsCamera" | Remove-AppxPackage
-Get-AppxPackage "Microsoft.WindowsMaps" | Remove-AppxPackage
-Get-AppxPackage "Microsoft.WindowsPhone" | Remove-AppxPackage
-Get-AppxPackage "Microsoft.WindowsSoundRecorder" | Remove-AppxPackage
-Get-AppxPackage "Microsoft.ZuneMusic" | Remove-AppxPackage
-Get-AppxPackage "Microsoft.ZuneVideo" | Remove-AppxPackage
-Get-AppxPackage "microsoft.windowscommunicationsapps" | Remove-AppxPackage
-Get-AppxPackage "Playtika.CaesarsSlotsFreeCasino" | Remove-AppxPackage
-Get-AppxPackage "TuneIn.TuneInRadio" | Remove-AppxPackage
+# Iterate through all non-system applications and then uninstall anything that hasn't been explicitly whitelisted.
+$whitelisted_packages = @()
+$whitelisted_packages += "AD2F1837.HPPrinterControl"
+$whitelisted_packages += "Microsoft.Microsoft3DViewer"
+$whitelisted_packages += "Microsoft.DesktopAppInstaller"
+$whitelisted_packages += "Microsoft.HEIFImageExtension"
+$whitelisted_packages += "Microsoft.VP9VideoExtensions"
+$whitelisted_packages += "Microsoft.WebMediaExtensions"
+$whitelisted_packages += "Microsoft.WebpImageExtension"
+$whitelisted_packages += "Microsoft.Windows.Photos"
+$whitelisted_packages += "Microsoft.WindowsStore"
+$whitelisted_packages += "Microsoft.WindowsFeedbackHub"
+$whitelisted_packages += "Microsoft.Xbox.TCUI"
+$whitelisted_packages += "Microsoft.XboxApp"
+$whitelisted_packages += "Microsoft.XboxGameOverlay"
+$whitelisted_packages += "Microsoft.XboxGamingOverlay"
+$whitelisted_packages += "Microsoft.XboxIdentityProvider"
+$whitelisted_packages += "Microsoft.XboxSpeechToTextOverlay"
+[System.Collections.ArrayList]$installed_packages = Get-AppxPackage -PackageTypeFilter Main | ? { $_.SignatureKind -ne "System" } | Sort Name
+foreach ($package in $installed_packages) {
+	if ($whitelisted_packages.Contains($package.Name)) {
+		Continue
+	} else {
+		Get-AppxPackage "$($package.Name)" | Remove-AppxPackage
+	}
+}
 
 # Reboot
 Write-Host
